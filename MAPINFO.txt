@@ -1,0 +1,11 @@
+GameInfo {
+	PlayerClasses = "ultraGuy"
+	AddEventHandlers = "UltraHandler"
+}
+
+map map01 "Ultra-Violent" {
+
+    aircontrol = 1.0
+    music = "D_RUNNIN"
+//     gravity = 250
+}

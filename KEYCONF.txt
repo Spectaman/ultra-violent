@@ -1,0 +1,8 @@
+alias parry "NetEvent parry"
+
+addkeysection "Ultra Controls" CrossOver
+addmenukey "Punch/Parry" "use ParryController"
+//addmenukey "Superior Walk Forward" "+swingforward"
+//addmenukey "Superior Walk Backward" "+swingbackward"
+
+

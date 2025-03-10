@@ -69,11 +69,15 @@ class ParryController : CustomInventory {
 					Guy.doParry(invoker);//for some unholy reason, "self" does not refer to the instance of the class.
 				}
 			}
+			
+			
+			//todo: find a better place for these two
 			PUNG B 3 ;
 			PUNG C 4 ;
+
 		ArmRetract:	
-			PUNG D 5 {
-				A_FireShotgun();
+			PUNG D 4 {
+				// A_FireShotgun();
 			}
 			PUNG C 4 ;
 			PUNG B 5;
@@ -82,17 +86,17 @@ class ParryController : CustomInventory {
 			PUNG D 1 {
 				console.printf("this is a bullet");
 			}
-			stop;
+			goto ArmRetract;
 		ParryProjectile:
 			PUNG D 1 {
 				console.printf("this is a projectile");
 			}
-			stop;
+			goto ArmRetract;
 		ParryMelee:
 			PUNG D 1 {
 				console.printf("this is a fist");
 			}
-			stop;
+			goto ArmRetract;
 	//end of States
 	}
 
@@ -169,7 +173,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's ParryBox from: https
 			// }
 			//A_CustomBulletAttack(2,2,1,20);
 			// A_FireBullets(0, 0, 1, 45, "RiflePuff", FBF_USEAMMO|FBF_NORANDOM);
-			tracer.A_FireShotgun();
+			// tracer.A_FireShotgun();
 			bSHOOTABLE = True;
 		}
 		

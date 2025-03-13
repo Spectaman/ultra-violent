@@ -3,14 +3,14 @@ class ultraGuy: DoomPlayer {
 	
 	
 	//parrying stuff
-	const PARRY_DIST = 500;
+	const PARRY_DIST = 64;
 	
 	Default{
 		Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
 	}
 	
-	bool doParry(Actor ControllerThePlatypus){
+	Actor doParry(Actor ControllerThePlatypus){
 // 		console.printf("hello, I am parrying");
 		
 		FLineTraceData WhoIParried;
@@ -23,15 +23,22 @@ class ultraGuy: DoomPlayer {
 				offsetz: pz,
 				data: WhoIParried
 			);
-		vector3 whereToParry = WhoIParried.HitDir;
+		vector3 whereToParry = WhoIParried.HitDir*PARRY_DIST;
 
 		//let this guy to the whole parrying shabam
 		bool didParrySpawn;
-		Actor ParryThePlatypus;
-		[didParrySpawn, ParryThePlatypus] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z, angle: self.angle, flags:SXF_SETMASTER);
+		Actor P;
+		[didParrySpawn, P] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z, angle: self.angle, flags:SXF_SETTARGET);
+		let ParryThePlatypus = ParryHitbox(P);
+		// ParryThePlatypus.hitDirection =  WhoIParried.HitDir;
+
+		// ParryThePlatypus.Target = self;
+		//now i can access them in between
 		ParryThePlatypus.tracer = ControllerThePlatypus;
+		ControllerThePlatypus.tracer = ParryThePlatypus;
+
 		// console.printf("%d",didParrySpawn);
-		return didParrySpawn;
+		return ParryThePlatypus;
 	}
 	
 	

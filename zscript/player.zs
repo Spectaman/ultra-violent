@@ -11,7 +11,7 @@ class ultraGuy: DoomPlayer {
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){
-// 		console.printf("hello, I am parrying");
+		// console.printf("hello, I am parrying");
 		
 		FLineTraceData WhoIParried;
 		//this is player camera z. Trust me bro

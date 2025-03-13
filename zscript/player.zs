@@ -28,13 +28,13 @@ class ultraGuy: DoomPlayer {
 		//let this guy to the whole parrying shabam
 		bool didParrySpawn;
 		Actor P;
-		[didParrySpawn, P] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z, angle: self.angle, flags:SXF_SETTARGET);
+		[didParrySpawn, P] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z, angle: self.angle, flags:SXF_SETTARGET | SXF_SETMASTER);
 		let ParryThePlatypus = ParryHitbox(P);
 		// ParryThePlatypus.hitDirection =  WhoIParried.HitDir;
 
 		// ParryThePlatypus.Target = self;
 		//now i can access them in between
-		ParryThePlatypus.tracer = ControllerThePlatypus;
+		// ParryThePlatypus.tracer = ControllerThePlatypus;
 		ControllerThePlatypus.tracer = ParryThePlatypus;
 
 		// console.printf("%d",didParrySpawn);

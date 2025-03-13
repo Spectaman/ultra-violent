@@ -165,6 +165,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's ParryBox from: https
 		Height 32;
 		Projectilekickback 800;// i want to use this for knockback but idk if i will
 		species "player"; //please do not parry yourself
+		PainChance 256;
 
 		//imporant flag stuff
 		+SHOOTABLE		//Enemies can hit it.
@@ -274,7 +275,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's ParryBox from: https
 }
 
 
-//HEY! THIS DOESN'T BELONG TO YOU
+//by elSebas54
 Class ParryProjectile : Actor //the projectile actor that drags the parried projectile and deals desired damage
 { 
 	Actor PrProjectile, HitActor;
@@ -303,7 +304,7 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 	  Spawn:
 		TNT1 A 1 NoDelay
 		{
-			If(PrProjectile)
+			if(PrProjectile)
 			{
 				PrProjectile.SetOrigin( Pos , true);
 				PrProjectile.Vel = Vel;
@@ -312,7 +313,7 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 				if(bSEEKERMISSILE) {A_SeekerMissile(0,9,SMF_LOOK|SMF_PRECISE|SMF_CURSPEED,256);}
 
 			}
-			Else {Destroy();}
+			else {Destroy();}
 		}
 		loop;
 	  Death:
@@ -321,8 +322,8 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 			{
 				PrProjectile.SetOrigin( Pos , true);
 				PrProjectile.Vel = (0,0,0); 
-				// PrProjectile.SetStateLabel("Death");
-				ExplodeMissile();
+				PrProjectile.SetStateLabel("Death");
+				// ExplodeMissile();
 			}
 		}
 		stop;
@@ -349,7 +350,12 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 		// pass thou if its the player, parrybox, the projectile if its also shootable..
 		if (Victim == Master || Victim == Target || Victim == PrProjectile || Victim.bCORPSE || Victim.health <=0) Return MHIT_PASS;
 		
-		
+		If ( bRIPPER && !Victim.bDONTRIP && !Victim.bREFLECTIVE && Victim.bSHOOTABLE )
+		{
+			Return 1;
+		}
+		else {Return -1;}
+
 		return MHIT_DEFAULT;
 	}
 	

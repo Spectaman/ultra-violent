@@ -92,49 +92,35 @@ class ParryController : CustomInventory {
 				// setParryType('ATTACK_NOTHING');//assume nothing
 			}
 
-			PUNG B 1;
-			PUNG C 1;
-
-			PUNG D 1 {
+			PUNG B 1 {
 				let Guy = UltraGuy(player.mo);
 				if(Guy){
 					Guy.doParry(invoker);//for some unholy reason, "self" does not refer to the instance of the class.
 					// console.printf("%s",invoker.myParryHitbox.getclassname());
 				}
 			}
-		// WaitForParryResponse:
-		// 	PUNG D 1{
-		// 		//after one tick, the tracer should exist now
-		// 		A_JumpIf(invoker.myParryHitbox != null, "ArmRetract");
-		// 		console.printf("he's in the goddamn walls");
-		// 	}
-		// 	loop;
-		ArmRetract:	
-			PUNG D 2 {
-				// A_FireShotgun();
+			PUNG B 2{
+				int greg = self.player.mo.CountInv('PFlash');//i kinda forgot how to make a good name but its used to much i cant change it :P
+				//go here if nothing happened
+				A_JumpIf(greg > 0, "WaitForParryVisual");
+				console.printf("%d",greg);
 			}
-			PUNG C 2 ;
-			PUNG B 2;
+		ParryFail:
+			PUNG C 3;
+		ArmRetract:	
+			PUNG D 1 {
+				// A_FireShotgun();
+				level.SetFrozen(false);
+			}
+			PUNG C 3 ;
+			PUNG B 4;
 			stop;
-
-		//different behaviour based on what you are parrying
-		// ParryBullet:
-		// 	PUNG D 4 {
-		// 		console.printf("this is a bullet");
-		// 		A_FireShotgun;
-		// 	}
-		// 	goto ArmRetract;
-		// ParryProjectile:
-		// 	PUNG D 1 {
-		// 		console.printf("this is a projectile");
-		// 	}
-		// 	goto ArmRetract;
-		// ParryMelee:
-		// 	PUNG D 1 {
-		// 		console.printf("this is a fist");
-		// 		A_FireShotgun2;
-		// 	}
-		// 	goto ArmRetract;
+		WaitForParryVisual:
+			//visual cue
+			PUNG D 16 bright{
+				// level.SetFrozen(true);
+			}
+			goto ArmRetract;
 	//end of States
 	}
 
@@ -149,7 +135,7 @@ class ParryController : CustomInventory {
 }
 
 
-class ParryHitbox : Actor { // heavily based on elSebas54's ParryBox from: https://forum.zdoom.org/viewtopic.php?t=80050
+class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.zdoom.org/viewtopic.php?t=80050
 	//to clarify:
 	// tracer will be the controller.
 	// Target is the player
@@ -190,10 +176,12 @@ class ParryHitbox : Actor { // heavily based on elSebas54's ParryBox from: https
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
 		//player's parry attack should phase through it. 
 		//no need to put it back to true
-		//you are going to die
+		//you are going to die anyways
 		bSHOOTABLE = false;
 		inflictor.bSOLID =false;
 
+		//visual cue
+		self.target.GiveInventory("PFlash",1);
 
 		//todo: parry back the inflictor
 		// let controller = ParryController(tracer);
@@ -275,7 +263,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's ParryBox from: https
 }
 
 
-//by elSebas54
+//by elSebas54. 
 Class ParryProjectile : Actor //the projectile actor that drags the parried projectile and deals desired damage
 { 
 	Actor PrProjectile, HitActor;
@@ -304,7 +292,7 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 	  Spawn:
 		TNT1 A 1 NoDelay
 		{
-			if(PrProjectile)
+			if(PrProjectile) //keep projectile in the right direction
 			{
 				PrProjectile.SetOrigin( Pos , true);
 				PrProjectile.Vel = Vel;
@@ -358,19 +346,38 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 
 		return MHIT_DEFAULT;
 	}
-	
+	//end of ParryProjectile
 }
 
 
-class PFlash : PowerTimeFreezer { //flash the screen during a parry. Also freezes the game for   i m p a c t
+class PFlash : Powerup { //flash the screen during a parry. Also freezes the game for   i m p a c t
 	Default{
 		+INVENTORY.AUTOACTIVATE
 		Powerup.Color "InverseMap"; //InvulnerabilitySphere screen effect
-		Powerup.Duration 4;//4 ticks
+		Powerup.Duration 12;//12 ticks
 		
 	}
-	States{
-		HEAD A 1;//cacodemon sprite
-		loop;
+
+	override void InitEffect() //
+	{
+		Super.InitEffect();		
+		//stop the music
+		S_PauseSound(false, false);
+
+		//freeze the game 
+		level.SetFrozen(true);
+
 	}
+
+	override void EndEffect()
+	{
+		Super.EndEffect();
+
+		Level.SetFrozen(false);
+
+		S_ResumeSound(false);
+	}
+
+
+
 }

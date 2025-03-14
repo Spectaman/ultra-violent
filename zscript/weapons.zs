@@ -43,27 +43,10 @@ class ParryController : CustomInventory {
 	//TRACER is the hitbox
 
 	const PARRYLAYER = -100;//underneath weapons
+	double oldBob;//for toggling the viewbob
 	
-	//this information comes from the hitbox
-	// enum allDamageTypes {
-	// 	// DamageType Identifiers
-	// 	ATTACK_NOTHING = 0,
-	// 	ATTACK_MELEE   = 999,
-	// 	ATTACK_PROJ    = 9999, //easy to remember!
-	// 	ATTACK_HITSCAN = 99999,
-		
-	// };
-
-	Name incomingDamageType;
-
 	//pointer to the fabled hitbox
-	// Actor myParryHitbox;
-
-	// pointers set from the  hitbox DamageMobj so I can access them from the the Pain State
-	Actor ptr_Inflictor;
-	Actor ptr_Source;
-	int ptr_damage;
-	Name ptr_mod;
+	ParryHitBox myParryHitbox;
 
 	Default{
 		//cannot be taken from player by "dropping it".
@@ -95,40 +78,42 @@ class ParryController : CustomInventory {
 			PUNG B 1 {
 				let Guy = UltraGuy(player.mo);
 				if(Guy){
-					Guy.doParry(invoker);//for some unholy reason, "self" does not refer to the instance of the class.
+					invoker.myParryHitbox = ParryHitbox( Guy.doParry(invoker) );   //for some unholy reason, "self" does not refer to the instance of the class.
+					invoker.myParryHitbox.controllerPSprite = player.FindPSprite( OverlayID() );
 					// console.printf("%s",invoker.myParryHitbox.getclassname());
 				}
 			}
-			PUNG B 2{
-				int greg = self.player.mo.CountInv('PFlash');//i kinda forgot how to make a good name but its used to much i cant change it :P
-				//go here if nothing happened
-				A_JumpIf(greg > 0, "WaitForParryVisual");
-				console.printf("%d",greg);
-			}
+			PUNG B 2;
+			// {
+			// 	int greg = self.player.mo.CountInv('PFlash');//i kinda forgot how to make a good name but its used to much i cant change it :P
+			// 	//go here if nothing happened
+			// 	A_JumpIf(greg > 0, "WaitForParryVisual");
+			// 	// console.printf("%d",greg);
+			// }
 		ParryFail:
 			PUNG C 3;
 		ArmRetract:	
-			PUNG D 1 {
-				// A_FireShotgun();
-				level.SetFrozen(false);
+			PUNG D 3 {
+				// if(invoker.oldBob != 0){
+				// 	CVAR bobCVAR = CVar.GetCVar('movebob');
+				// 	bobCVAR.SetFloat(invoker.oldBob);
+				// }
+				
 			}
-			PUNG C 3 ;
-			PUNG B 4;
+			PUNG C 4 ;
+			PUNG B 10;
 			stop;
-		WaitForParryVisual:
-			//visual cue
-			PUNG D 16 bright{
-				// level.SetFrozen(true);
+		ParrySuccess:
+			PUNG D 1 bright {
+				//temporarly turn off viewbob (TURN IT BACK ON LATER)
+				// double bobCVAR = GetCVar('movebob');
+				// invoker.oldBob = bobCVAR.GetFloat();
+				// bobCVAR.SetFloat(0.0);
 			}
+			PUNG D 12 Offset(42, 35); // wow great parry dude
+			PUNG D 1  Offset(2, 32); // ok put the offset back now 
 			goto ArmRetract;
 	//end of States
-	}
-
-	void setParryType(Name name){
-		incomingDamageType = name;
-	}
-	Name getParryType(){
-		return incomingDamageType;
 	}
 
 	//end of ParryController
@@ -141,10 +126,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	// Target is the player
 	//
 	
-	const PARRY_DMG_MULT = 1.5;
-	
-	vector3 hitDirection;
-
+	PSprite controllerPSprite; //I can change states this way
 
 	Default{
 		Radius 16;
@@ -169,6 +151,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	States {
 		Spawn:
 			TNT1 AAAA 1 NoDelay; //this is your parrywindow. It is 4 A's, or 4 ticks, or a little over 1/8 of a second
+			stop;
 		Pain:
 			stop;
 	}
@@ -180,6 +163,10 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		bSHOOTABLE = false;
 		inflictor.bSOLID =false;
 
+		// viewbob toggle is in the Controller ParrySuccess State
+		
+		//audio cue
+		S_StartSound("dspunch",CHAN_BODY);
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
 
@@ -187,14 +174,14 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		// let controller = ParryController(tracer);
 
 		if( inflictor.bMISSILE && inflictor!=source ){ //projectile attack
-			console.printf("this is a projectile");//tells me that i hit a projectile
+			// console.printf("this is a projectile");//tells me that i hit a projectile
 
 			//fire back!
 			inflictor.bMISSILE = false;//please don't explode immediately
 			inflictor.SetStateLabel("Spawn"); //the projectile is dying! bring my boy back
 			
 
-			//ParryProjectile is heavily based on elSabas54's work again
+			//ParryProjectile is heavily based on elSabas54's work again.
 
 			ParryProjectile PProj = ParryProjectile( Spawn("ParryProjectile",inflictor.pos) ); //the new projectile that drags the parried projectile
 			if(PProj){
@@ -225,18 +212,10 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 				PProj.vel = ( sped*Cos(self.target.angle)*cos(self.target.pitch) , sped*sin(self.target.angle)*cos(self.target.pitch) , -sped*sin(self.target.pitch) );
 				PProj.bMISSILE = true;
 				PProj.bSEEKERMISSILE = inflictor.bSEEKERMISSILE;
-				//
+				//im adding this extra thing
+				PProj.DeathSound = PProj.PrProjectile.DeathSound;
 			}
-			
 
-			// inflictor.angle = self.target.angle;//player angle and pitch (facing direction)
-			// inflictor.pitch = self.target.pitch;
-			// // inflictor.vel = getReflectedVel(inflictor);
-			
-			//inflictor.vel = ( sped*Cos(self.target.angle)*cos(self.target.pitch) , sped*sin(self.target.angle)*cos(self.target.pitch) , -sped*sin(self.target.pitch) );
-		
-			//ok now you can explode
-			// inflictor.bMISSILE = true;
 		}
 		else if ( mod=='Hitscan' ){ //hitscan attack
 			//shoot back at them!
@@ -247,10 +226,13 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 			// controller.setParryType('ATTACK_MELEE');
 		}
 		
-		console.printf("eeyowch!");
+
+		if(controllerPSprite) controllerPSprite.SetState(controllerPSprite.Caller.FindState("ParrySuccess") ); //tell the controller it's parry time
+
+		// console.printf("eeyowch!");
 		// console.printf("%s", mod);
-		return 0;
-		//end of DamageMobj
+
+		return 0; //end of DamageMobj
 	}
 	
 	vector3 getReflectedVel(Actor ThingImGonnaParry){
@@ -353,20 +335,29 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 class PFlash : Powerup { //flash the screen during a parry. Also freezes the game for   i m p a c t
 	Default{
 		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.NOSCREENBLINK
 		Powerup.Color "InverseMap"; //InvulnerabilitySphere screen effect
-		Powerup.Duration 12;//12 ticks
+		Powerup.Duration 18;//24 ticks
 		
 	}
 
-	override void InitEffect() //
-	{
-		Super.InitEffect();		
-		//stop the music
-		S_PauseSound(false, false);
+	// override void InitEffect() //
+	// {
+	// 	Super.InitEffect();		
+	// 	//stop the music
+	// 	S_PauseSound(false, false);
 
+	// 	//freeze the game 
+	// 	level.SetFrozen(true);
+
+	// }
+
+	override void DoEffect(){ //this runs on every tick but InitEffect wasn't working soooooo
+		Super.DoEffect();
 		//freeze the game 
 		level.SetFrozen(true);
-
+		//stop the music, but not the sound
+		S_PauseSound(false, true);
 	}
 
 	override void EndEffect()

@@ -110,7 +110,7 @@ class ParryController : CustomInventory {
 				// invoker.oldBob = bobCVAR.GetFloat();
 				// bobCVAR.SetFloat(0.0);
 			}
-			PUNG D 12 Offset(42, 35); // wow great parry dude
+			PUNG D 13 Offset(42, 35); // wow great parry dude
 			PUNG D 1  Offset(2, 32); // ok put the offset back now 
 			goto ArmRetract;
 	//end of States

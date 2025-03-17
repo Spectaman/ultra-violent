@@ -3,7 +3,7 @@ class ultraGuy: DoomPlayer {
 	
 	
 	//parrying stuff
-	const PARRY_DIST = 8;
+	const PARRY_DIST = 10;
 	
 	Default{
 		// Player.StartItem "Pistol";

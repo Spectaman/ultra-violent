@@ -43,8 +43,10 @@ class ParryController : CustomInventory {
 	//TRACER is the hitbox
 
 	const PARRYLAYER = -100;//underneath weapons
-	double oldBob;//for toggling the viewbob
+	// double oldBob;//for toggling the viewbob
 	
+	
+
 	//pointer to the fabled hitbox
 	ParryHitBox myParryHitbox;
 
@@ -73,6 +75,9 @@ class ParryController : CustomInventory {
 			TNT1 A 0 {
 				A_OverlayOffset(OverlayID(), -20, WEAPONTOP);
 				// setParryType('ATTACK_NOTHING');//assume nothing
+				// if (self && InStateSequence(self.curstate, ResolveState("Pain"))){//cannot parry during pain state
+				// 	console.printf("im taking damage!");
+				// }
 			}
 
 			PUNG B 1 {
@@ -129,7 +134,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	PSprite controllerPSprite; //I can change states this way
 
 	Default{
-		Radius 16;
+		Radius 20;
 		Height 32;
 		Projectilekickback 800;// i want to use this for knockback but idk if i will
 		species "player"; //please do not parry yourself
@@ -156,6 +161,13 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 			stop;
 	}
 	
+	override void Tick(){
+		Super.Tick();
+
+		self.vel = target.vel; //match player vel
+	}
+
+
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
 		//player's parry attack should phase through it. 
 		//no need to put it back to true
@@ -169,6 +181,14 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		S_StartSound("dspunch",CHAN_BODY);
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
+		
+		// "Good. I'm giving you a bonus."
+		// if(self.target.player.health < 100){//no overheal thats a little too busted tbh
+		// 	self.target.player.health += 20;
+		// 	if(self.target.player.health > 100){
+		// 		self.target.player.health = 100;
+		// 	}
+		// }
 
 		//todo: parry back the inflictor
 		// let controller = ParryController(tracer);
@@ -332,12 +352,12 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 }
 
 
-class PFlash : Powerup { //flash the screen during a parry. Also freezes the game for   i m p a c t
+class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freezes the game for   i m p a c t
 	Default{
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
-		Powerup.Color "InverseMap"; //InvulnerabilitySphere screen effect
-		Powerup.Duration 18;//24 ticks
+		Powerup.Color "FF FF FF" ; //InvulnerabilitySphere screen effect
+		Powerup.Duration 14;//14 ticks
 		
 	}
 

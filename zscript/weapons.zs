@@ -154,10 +154,20 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	}
 	
 	States {
-		Spawn:
-			TNT1 AAAA 1 NoDelay; //this is your parrywindow. It is 4 A's, or 4 ticks, or a little over 1/8 of a second
-			stop;
-		Pain:
+		Spawn: //this is your parrywindow. It is 8 ticks, or a little over 1/4 of a second
+			TNT1 A 1 NoDelay {
+				let Guy = UltraGuy(self.target);
+				if(Guy){
+					Guy.canParryMelee = true;
+				}
+			} 
+			TNT1 AAAAAA 1 NoDelay; //this is your parrywindow. It is 8 ticks, or a little over 1/4 of a second
+			TNT1 A 1 NoDelay{
+				let Guy = UltraGuy(self.target);
+				if(Guy){
+					Guy.canParryMelee = false;
+				}
+			}
 			stop;
 	}
 	
@@ -237,13 +247,12 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 			}
 
 		}
-		else if ( mod=='Hitscan' ){ //hitscan attack
-			//shoot back at them!
-			// controller.setParryType('ATTACK_HITSCAN');
-		}
-		else if ( source == target ){ //melee attack
-			//punch them i guess
+		// else if ( source == target ){ //melee attack
+		else if ( source != target && ( inflictor == source || mod == "Melee" || (flags == 2048 && inflictor.distance3d(source)>100) ) ) //if its melee
+		{	
+		//punch them i guess
 			// controller.setParryType('ATTACK_MELEE');
+			console.printf("john melee");
 		}
 		
 
@@ -261,6 +270,8 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		double verticalVel = sin(pitch);
 		return (  horizontalVel.x,  horizontalVel.y,  verticalVel);
 	}
+
+
 	//end of ParryHitBox
 }
 

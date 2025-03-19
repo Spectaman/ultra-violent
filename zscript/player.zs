@@ -4,7 +4,17 @@ class ultraGuy: DoomPlayer {
 	
 	//parrying stuff
 	const PARRY_DIST = 10;
+	bool canParryMelee;
 	
+	//dash stuff
+	const DASH_SPEED = 200;	
+	
+	//wall jump stuff
+	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do in air
+	bool canWallJump;
+	int jumpAnglel;
+	int currentWallJumpCount;
+
 	Default{
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
@@ -47,6 +57,53 @@ class ultraGuy: DoomPlayer {
 		Super.Tick();
 		
 // 		console.printf("look ma im being executed!");
+	}
+
+	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
+		if(canParryMelee && source == inflictor) { //melee attack
+			//audio cue
+			S_StartSound("dspunch",CHAN_BODY);
+			//visual cue
+			GiveInventory("PFlash",1);
+
+			//todo: attack enemy
+
+			return 0;
+		}
+		else {
+			return super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+		}
+	}
+
+
+
+
+	void doDash(){
+
+		
+	}
+
+	void CheckWallJump()
+	{
+		bool isTouchingWall = false;
+		for (int x = 0; x <= 360; x += 90) {
+			isTouchingWall = CheckLOF(CLOFF_JUMP_ON_MISS | CLOFF_SKIPENEMY | CLOFF_SKIPFRIEND | CLOFF_SKIPOBJECT | CLOFF_MUSTBESOLID | CLOFF_ALLOWNULL | CLOFF_NOAIM_VERT, 32, 0, x);
+			if (isTouchingWall) {
+				jumpAnglel = x;
+				canWallJump = false;
+				break;
+			}
+		}
+		if (!isTouchingWall) {
+			canWallJump = false;
+		}
+	}
+
+	void doWallJump(){
+		if(canWallJump){
+			// todo: jump opposite from wall
+			
+		}
 	}
 
 }

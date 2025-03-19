@@ -5,6 +5,7 @@ class ultraGuy: DoomPlayer {
 	//parrying stuff
 	const PARRY_DIST = 10;
 	bool canParryMelee;
+	const PARRY_PUNCH_KNOCKBACK = 1;
 	
 	//dash stuff
 	const DASH_SPEED = 200;	
@@ -26,19 +27,18 @@ class ultraGuy: DoomPlayer {
 		FLineTraceData WhoIParried;
 		//this is player camera z. Trust me bro
 		double pz = player.viewz - pos.z;
-		bool didIParrySomething = LineTrace(
-				angle,
-				PARRY_DIST,
-				pitch,
-				offsetz: pz,
-				data: WhoIParried
-			);
-		vector3 whereToParry = WhoIParried.HitDir*PARRY_DIST;
+		
+		// direction vector based on: https://forum.zdoom.org/viewtopic.php?t=62666
+		Vector3 direction;
+		direction.xy = Actor.AngleToVector(self.Angle);
+		direction.z = sin(-self.Pitch);
+
+		vector3 whereToParry = direction*PARRY_DIST;
 
 		//let this guy to the whole parrying shabam
 		bool didParrySpawn;
 		Actor P;
-		[didParrySpawn, P] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z, angle: self.angle, flags:SXF_SETTARGET | SXF_SETMASTER);
+		[didParrySpawn, P] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z + pz, angle: self.angle, flags:SXF_SETTARGET | SXF_SETMASTER);
 		let ParryThePlatypus = ParryHitbox(P);
 		// ParryThePlatypus.hitDirection =  WhoIParried.HitDir;
 
@@ -52,7 +52,6 @@ class ultraGuy: DoomPlayer {
 	}
 	
 	
-	
 	override void Tick(){
 		Super.Tick();
 		
@@ -60,13 +59,22 @@ class ultraGuy: DoomPlayer {
 	}
 
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
-		if(canParryMelee && source == inflictor) { //melee attack
+		if(canParryMelee && source == inflictor) { //melee attack parry?
 			//audio cue
 			S_StartSound("dspunch",CHAN_BODY);
 			//visual cue
 			GiveInventory("PFlash",1);
-
+			
 			//todo: attack enemy
+			if(source){
+				// direction vector based on: https://forum.zdoom.org/viewtopic.php?t=62666
+				Vector3 direction;
+				direction.xy = Actor.AngleToVector(self.Angle);
+				direction.z = 0;
+
+				source.vel += (direction*PARRY_PUNCH_KNOCKBACK);
+				source.DamageMobj(self, self, damage*5, mod, flags, angle);
+			}
 
 			return 0;
 		}

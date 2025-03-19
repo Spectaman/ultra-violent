@@ -161,8 +161,8 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 					Guy.canParryMelee = true;
 				}
 			} 
-			TNT1 AAAAAA 1 NoDelay; //this is your parrywindow. It is 8 ticks, or a little over 1/4 of a second
-			TNT1 A 1 NoDelay{
+			TNT1 AAAAAA 1; //this is your parrywindow. It is 8 ticks, or a little over 1/4 of a second
+			TNT1 A 1 {
 				let Guy = UltraGuy(self.target);
 				if(Guy){
 					Guy.canParryMelee = false;
@@ -176,7 +176,6 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 
 		self.vel = target.vel; //match player vel
 	}
-
 
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
 		//player's parry attack should phase through it. 
@@ -246,13 +245,6 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 				PProj.DeathSound = PProj.PrProjectile.DeathSound;
 			}
 
-		}
-		// else if ( source == target ){ //melee attack
-		else if ( source != target && ( inflictor == source || mod == "Melee" || (flags == 2048 && inflictor.distance3d(source)>100) ) ) //if its melee
-		{	
-		//punch them i guess
-			// controller.setParryType('ATTACK_MELEE');
-			console.printf("john melee");
 		}
 		
 

@@ -11,9 +11,11 @@ class ultraGuy: DoomPlayer {
 	const DASH_SPEED = 200;	
 	
 	//wall jump stuff
-	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do in air
+	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
+	const WALL_SEARCH_DIST = 32;
+	const WJUMP_FORCE = 65;
 	bool canWallJump;
-	int jumpAnglel;
+	int jumpAngle;
 	int currentWallJumpCount;
 
 	Default{
@@ -24,7 +26,7 @@ class ultraGuy: DoomPlayer {
 	Actor doParry(Actor ControllerThePlatypus){
 		// console.printf("hello, I am parrying");
 		
-		FLineTraceData WhoIParried;
+		// FLineTraceData WhoIParried;
 		//this is player camera z. Trust me bro
 		double pz = player.viewz - pos.z;
 		
@@ -38,7 +40,7 @@ class ultraGuy: DoomPlayer {
 		//let this guy to the whole parrying shabam
 		bool didParrySpawn;
 		Actor P;
-		[didParrySpawn, P] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z + pz, angle: self.angle, flags:SXF_SETTARGET | SXF_SETMASTER);
+		[didParrySpawn, P] = A_SpawnItemEx("ParryHitbox",whereToParry.x, whereToParry.y, whereToParry.z, angle: self.angle, flags:SXF_SETTARGET | SXF_SETMASTER);
 		let ParryThePlatypus = ParryHitbox(P);
 		// ParryThePlatypus.hitDirection =  WhoIParried.HitDir;
 
@@ -54,13 +56,15 @@ class ultraGuy: DoomPlayer {
 	
 	override void Tick(){
 		Super.Tick();
-		
-// 		console.printf("look ma im being executed!");
+		// Usercmd cmd = self.cmd;	//pass player inputs to functions
+
+		// canWallJump = CheckWallJump();
+
+		// console.printf("look ma im being executed!");
 	}
 
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
-		if(canParryMelee && source == inflictor) { //melee attack parry?
-			//audio cue
+		if(canParryMelee && source == inflictor) { //melee attack parry?			//audio cue
 			S_StartSound("dspunch",CHAN_BODY);
 			//visual cue
 			GiveInventory("PFlash",1);
@@ -91,27 +95,67 @@ class ultraGuy: DoomPlayer {
 		
 	}
 
-	void CheckWallJump()
+	bool CheckWallJump()
 	{
-		bool isTouchingWall = false;
-		for (int x = 0; x <= 360; x += 90) {
-			isTouchingWall = CheckLOF(CLOFF_JUMP_ON_MISS | CLOFF_SKIPENEMY | CLOFF_SKIPFRIEND | CLOFF_SKIPOBJECT | CLOFF_MUSTBESOLID | CLOFF_ALLOWNULL | CLOFF_NOAIM_VERT, 32, 0, x);
-			if (isTouchingWall) {
-				jumpAnglel = x;
-				canWallJump = false;
-				break;
+		// if(!self.onGround){	//dont bother if player is on the ground
+		// 	return false;
+		// }
+
+		//wall-finding algorithm from Ivory Duke's ZMovement mod
+		FLineTraceData wallData;
+
+		for(int i = 0; i < 8; i++){
+			LineTrace(i*45, WALL_SEARCH_DIST, 0, 0, data: wallData);
+
+			if(wallData.distance < WALL_SEARCH_DIST && wallData.HitType == TRACE_HitWall){	//if linetrace ended before the wallsearch limit
+				// double wallAngle = VectorAngle(wallData.HitLine.Delta.x, wallData.HitLine.Delta.y);
+				// jumpAngle = Angle - VectorAngle(cmd.forwardmove, cmd.sidemove);
+				return true;
 			}
 		}
-		if (!isTouchingWall) {
-			canWallJump = false;
-		}
+
+		return false;
 	}
 
-	void doWallJump(){
-		if(canWallJump){
-			// todo: jump opposite from wall
-			
-		}
+
+	void doWallJump(){ //it is assumed you can wall jump here.
+
+		// todo: jump opposite from wall
+		Vector3 direction;
+		direction.xy = WJUMP_FORCE * Actor.AngleToVector(self.jumpAngle+180);
+		direction.z = (JumpZ + 50);
+		
+
 	}
 
+	vector2 vec2ToLine(Line theLine){	//returns the shortest vector from the wall to the player
+		//get player position
+		
+		//get v1 (haha like ultrakill)
+		Vertex vertex1 = theLine.v1;
+
+		//find vector from v1 to player
+		vector2 vToPlayer = self.pos.xy - vertex1.p;
+
+		//project that vector onto theLine delta
+		//find how much of that vector is delta
+		vector2 vec3AlongLine = vec2_project(vToPlayer, theLine.delta);
+
+		//find the orthogonal projection of vToPlayer
+		vector2 orthproj = vToPlayer - vec3AlongLine;
+
+		return (0,0);
+	}
+
+	//for projecting a vector u onto another vector v
+	vector2 vec2_project(vector2 u, vector2 v){
+		//this comes up more often than you think
+		if(v.LengthSquared() == 0){
+			return (0,0);
+		}
+	
+		return (u dot v)/(v.LengthSquared())*(v);
+	}
+
+	//end of ultraGuy
 }

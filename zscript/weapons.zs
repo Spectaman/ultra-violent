@@ -134,7 +134,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	PSprite controllerPSprite; //I can change states this way
 
 	Default{
-		Radius 20;
+		Radius 17;
 		Height 32;
 		Projectilekickback 800;// i want to use this for knockback but idk if i will
 		species "player"; //please do not parry yourself
@@ -154,15 +154,16 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	}
 	
 	States {
-		Spawn: //this is your parrywindow. It is 8 ticks, or a little over 1/4 of a second
+		Spawn: 
 			TNT1 A 1 NoDelay {
 				let Guy = UltraGuy(self.target);
 				if(Guy){
 					Guy.canParryMelee = true;
 				}
 			} 
-			TNT1 AAAAAA 1; //this is your parrywindow. It is 8 ticks, or a little over 1/4 of a second
-			TNT1 A 1 {
+			TNT1 AAAAA 1; //this is your parrywindow. It is 5 ticks, or 1/7 of a second
+		Pain:
+			TNT1 A 1 NoDelay {
 				let Guy = UltraGuy(self.target);
 				if(Guy){
 					Guy.canParryMelee = false;
@@ -190,7 +191,10 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		S_StartSound("dspunch",CHAN_BODY);
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
-		
+		//give player health for parrying
+		self.target.player.health = min(self.target.player.health + 25, 100);
+
+
 		// "Good. I'm giving you a bonus."
 		// if(self.target.player.health < 100){//no overheal thats a little too busted tbh
 		// 	self.target.player.health += 20;
@@ -253,14 +257,8 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		// console.printf("eeyowch!");
 		// console.printf("%s", mod);
 
-		return 0; //end of DamageMobj
-	}
-	
-	vector3 getReflectedVel(Actor ThingImGonnaParry){
-		vector3 oldVel = ThingImGonnaParry.vel;
-		vector2 horizontalVel = AngleToVector(  self.target.angle,oldVel.Length()  ); //built in functions my beloved.
-		double verticalVel = sin(pitch);
-		return (  horizontalVel.x,  horizontalVel.y,  verticalVel);
+		return 0; 
+		//end of DamageMobj
 	}
 
 
@@ -360,7 +358,7 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
 		Powerup.Color "FF FF FF" ; //InvulnerabilitySphere screen effect
-		Powerup.Duration 14;//14 ticks
+		Powerup.Duration 12;//12 ticks
 		
 	}
 
@@ -381,6 +379,11 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 		level.SetFrozen(true);
 		//stop the music, but not the sound
 		S_PauseSound(false, true);
+
+		if (owner && owner.health <= 0) {
+			Destroy();
+		}
+
 	}
 
 	override void EndEffect()

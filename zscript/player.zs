@@ -158,8 +158,6 @@ class ultraGuy: DoomPlayer {
 			self.vel = WJUMP_FORCE * (jumpVector.x, jumpVector.y, 0.6);
 			//increment walljump counter
 			currentWallJumpCount += 1;
-			console.printf("look ma im being executed!");
-
 			
 		}
 

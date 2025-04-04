@@ -12,15 +12,17 @@ class ultraGuy: DoomPlayer {
 	
 	//wall jump stuff
 	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
-	const WALL_SEARCH_DIST = 32;
-	const WJUMP_FORCE = 65;
+	const WALL_SEARCH_DIST = 20;
+	const WJUMP_FORCE = 30;
 	bool canWallJump;
 	int jumpAngle;
+	vector2 jumpVector;
 	int currentWallJumpCount;
 
 	Default{
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
+		Player.JumpZ 12; //higher jump (8 is normal)
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){
@@ -56,9 +58,22 @@ class ultraGuy: DoomPlayer {
 	
 	override void Tick(){
 		Super.Tick();
-		// Usercmd cmd = self.cmd;	//pass player inputs to functions
+		
+		//pressed the jump button.
+		bool justJumped = GetPlayerInput(MODINPUT_BUTTONS) & BT_JUMP && !(GetPlayerInput(MODINPUT_OLDBUTTONS) & BT_JUMP);
 
-		// canWallJump = CheckWallJump();
+		[canWallJump, jumpVector] = CheckWallJump();
+		if(canWallJump && justJumped && !self.player.onGround && currentWallJumpCount < 3){
+			//console.printf("john walljump");
+			//fire player in that vector
+			self.vel += WJUMP_FORCE * (jumpVector.x, jumpVector.y, 1);
+			//increment walljump counter
+			currentWallJumpCount += 1;
+		}
+
+		if(self..player.onGround){
+			currentWallJumpCount = 0;
+		}
 
 		// console.printf("look ma im being executed!");
 	}
@@ -95,26 +110,43 @@ class ultraGuy: DoomPlayer {
 		
 	}
 
-	bool CheckWallJump()
+	bool, vector2 CheckWallJump()
 	{
 		// if(!self.onGround){	//dont bother if player is on the ground
 		// 	return false;
 		// }
 
-		//wall-finding algorithm from Ivory Duke's ZMovement mod
+		//wall-finding algorithm inspired by Ivory Duke's ZMovement mod
 		FLineTraceData wallData;
+		bool didIhitAWall;
+		vector2 johnVector;
 
-		for(int i = 0; i < 8; i++){
-			LineTrace(i*45, WALL_SEARCH_DIST, 0, 0, data: wallData);
+		for(int i = 0; i < 360; i++){
+			didIhitAWall = LineTrace(i, self.radius + WALL_SEARCH_DIST, 0, flags: TRF_THRUACTORS | TRF_BLOCKSELF , data: wallData);
 
-			if(wallData.distance < WALL_SEARCH_DIST && wallData.HitType == TRACE_HitWall){	//if linetrace ended before the wallsearch limit
+			if(didIhitAWall && wallData.HitType == TRACE_HitWall){	//if linetrace ended before the wallsearch limit
 				// double wallAngle = VectorAngle(wallData.HitLine.Delta.x, wallData.HitLine.Delta.y);
 				// jumpAngle = Angle - VectorAngle(cmd.forwardmove, cmd.sidemove);
-				return true;
+
+				//get angle based on the Line's delta vector
+				// double johnAngle = VectorAngle (wallData.HitLine.delta.x, wallData.HitLine.delta.y);
+
+				//get vector from v1 to player
+				johnVector = self.pos.xy - wallData.HitLine.v1.p;
+				//find how much of vector is along Line delta
+				vector2 alongVector = project2(johnVector, wallData.HitLine.delta);
+				//get the orthogonal projection. This is the vector from the line directly to the player
+				johnVector = johnVector - alongVector;
+
+				break;
 			}
 		}
 
-		return false;
+		if(didIhitAWall){
+			return true, johnVector.Unit();
+		}
+
+		return false, (0,0);
 	}
 
 
@@ -124,38 +156,27 @@ class ultraGuy: DoomPlayer {
 		Vector3 direction;
 		direction.xy = WJUMP_FORCE * Actor.AngleToVector(self.jumpAngle+180);
 		direction.z = (JumpZ + 50);
-		
 
 	}
 
-	vector2 vec2ToLine(Line theLine){	//returns the shortest vector from the wall to the player
-		//get player position
-		
-		//get v1 (haha like ultrakill)
-		Vertex vertex1 = theLine.v1;
-
-		//find vector from v1 to player
-		vector2 vToPlayer = self.pos.xy - vertex1.p;
-
-		//project that vector onto theLine delta
-		//find how much of that vector is delta
-		vector2 vec3AlongLine = vec2_project(vToPlayer, theLine.delta);
-
-		//find the orthogonal projection of vToPlayer
-		vector2 orthproj = vToPlayer - vec3AlongLine;
-
-		return (0,0);
-	}
-
-	//for projecting a vector u onto another vector v
-	vector2 vec2_project(vector2 u, vector2 v){
+	//for projecting a vector3 u onto another vector v
+	vector3 project3(vector3 u, vector3 v){
 		//this comes up more often than you think
 		if(v.LengthSquared() == 0){
-			return (0,0);
+			return (0,0,0);
 		}
 	
 		return (u dot v)/(v.LengthSquared())*(v);
 	}
+	//version for vector2
+	vector2 project2(vector2 u, vector2 v){
+		if(v.lengthSquared() == 0){
+			(0,0,0);
+		}
+		return (u dot v)/(v.LengthSquared())*(v);
+	}
+
+
 
 	//end of ultraGuy
 }

@@ -12,7 +12,7 @@ class ultraGuy: DoomPlayer {
 	
 	//wall jump stuff
 	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
-	const WALL_SEARCH_DIST = 20;
+	const WALL_SEARCH_DIST = 15;
 	const WJUMP_FORCE = 30;
 	bool canWallJump;
 	int jumpAngle;
@@ -22,7 +22,7 @@ class ultraGuy: DoomPlayer {
 	Default{
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
-		Player.JumpZ 12; //higher jump (8 is normal)
+		Player.JumpZ 12; //higher jump than 8
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){
@@ -55,26 +55,24 @@ class ultraGuy: DoomPlayer {
 		return ParryThePlatypus;
 	}
 	
+	override void PostBeginPlay(){
+		super.PostBeginPlay();
+		currentWallJumpCount = 0;
+	}
 	
 	override void Tick(){
 		Super.Tick();
 		
-		//pressed the jump button.
-		bool justJumped = GetPlayerInput(MODINPUT_BUTTONS) & BT_JUMP && !(GetPlayerInput(MODINPUT_OLDBUTTONS) & BT_JUMP);
 
-		[canWallJump, jumpVector] = CheckWallJump();
-		if(canWallJump && justJumped && !self.player.onGround && currentWallJumpCount < 3){
-			//console.printf("john walljump");
-			//fire player in that vector
-			self.vel += WJUMP_FORCE * (jumpVector.x, jumpVector.y, 1);
-			//increment walljump counter
-			currentWallJumpCount += 1;
-		}
+		// //allow air control only when the player is pressing buttons THAT MOVE THE PLAYER
+		// if(  GetPlayerInput(-1,MODINPUT_BUTTONS) & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )  ) {
+		// 	ACS_NamedExecute("AirOn");
+		// }
+		// else{
+		// 	ACS_NamedExecute("AirOff");
+		// }
 
-		if(self..player.onGround){
-			currentWallJumpCount = 0;
-		}
-
+		doWallJump();	//do a wall jump if the conditions for it arise
 		// console.printf("look ma im being executed!");
 	}
 
@@ -105,9 +103,8 @@ class ultraGuy: DoomPlayer {
 
 
 
-	void doDash(){
-
-		
+	void doDash() {
+		return;
 	}
 
 	bool, vector2 CheckWallJump()
@@ -151,11 +148,24 @@ class ultraGuy: DoomPlayer {
 
 
 	void doWallJump(){ //it is assumed you can wall jump here.
+		//pressed the jump button.
+		bool justJumped = GetPlayerInput(MODINPUT_BUTTONS) & BT_JUMP && !(GetPlayerInput(MODINPUT_OLDBUTTONS) & BT_JUMP);
 
-		// todo: jump opposite from wall
-		Vector3 direction;
-		direction.xy = WJUMP_FORCE * Actor.AngleToVector(self.jumpAngle+180);
-		direction.z = (JumpZ + 50);
+		[canWallJump, jumpVector] = CheckWallJump();
+		if(canWallJump && justJumped && !self.player.onGround && currentWallJumpCount < 3){
+			//console.printf("john walljump");
+			//fire player in that vector
+			self.vel = WJUMP_FORCE * (jumpVector.x, jumpVector.y, 0.6);
+			//increment walljump counter
+			currentWallJumpCount += 1;
+			console.printf("look ma im being executed!");
+
+			
+		}
+
+		if(self.player.onGround){
+			currentWallJumpCount = 0;
+		}
 
 	}
 

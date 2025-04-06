@@ -357,7 +357,7 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 	Default{
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
-		Powerup.Color "FF FF FF" ; //InvulnerabilitySphere screen effect
+		Powerup.Color "FF FF FF" ; //Whitescreen screen effect
 		Powerup.Duration 12;//12 ticks
 		
 	}

@@ -1,41 +1,3 @@
-//test weapon to understand Overlays
-//copy-pasted from https://jekyllgrim.github.io/ZScript_Basics/12_Weapons_Overlays_PSprite.html#overview
-// class PistolAngled : Pistol
-// {
-//     States
-//     {
-//     Ready:
-//         PGUN A 1 A_WeaponReady;
-//         loop;
-//     Fire:
-//         PGUN A 2
-//         {
-//             A_FireBullets(5.6, 0, 1, 5);
-//             A_StartSound("weapons/pistol", CHAN_WEAPON);
-//             A_Overlay(-2, "Flash");
-//             A_Overlay(2, "Highlights");
-//         }
-//         PGUN BD 1;
-//         PGUN CBA 2;
-//         PGUN A 5 A_ReFire;
-//         goto Ready;
-//     Flash:
-//         PGUF Z 2 bright A_Light1;
-//         TNT1 A 0 A_Light0;
-//         stop;
-//     Highlights:
-//         PGUF A 2 bright;
-//         stop;
-//     Select:
-//         PGUN A 1 A_Raise;
-//         loop;
-//     Deselect:
-//         PGUN A 1 A_Lower;
-//         loop;
-//     }
-// }
-
-
 //this is to simulate parrying without defining a weapon
 class ParryController : CustomInventory {
 
@@ -192,7 +154,9 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
 		//give player health for parrying
-		self.target.player.health = min(self.target.player.health + 25, 100);
+		if(self.target.player.health < 100){
+			self.target.player.health = min(self.target.player.health + 25, 100);
+		}
 
 
 		// "Good. I'm giving you a bonus."
@@ -379,6 +343,7 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 		level.SetFrozen(true);
 		//stop the music, but not the sound
 		S_PauseSound(false, true);
+		// ACS_NamedExecute ("SetMusicVolume", 0, 0.0); 
 
 		if (owner && owner.health <= 0) {
 			Destroy();
@@ -393,12 +358,66 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 		Level.SetFrozen(false);
 
 		S_ResumeSound(false);
+		// ACS_NamedExecute ("SetMusicVolume", 0, 1.0); 
 	}
 
 
-
+	//end of PFlash
 }
 
+class DashCharge : Inventory {    //uses these to
+    Default{
+        Inventory.MaxAmount 300;    //you use 100 per dash but it would make cool charguing ui thuing
+        //important flag stuff
+        +INVENTORY.UNTOSSABLE;
+        +INVENTORY.NOSCREENFLASH;
+    }
 
+    override bool Use(bool pickup){
+        if(owner && owner.CountInv("DashCharge") > 100){
+            owner.TakeInventory("DashCharge", 100);
+
+			let Guy = UltraGuy(owner);
+			
+			if(! owner.player.onGround){
+				owner.gravity = 0.0;
+			}
+
+            //thrust the player based on their inputs
+			int forwardback = 0;
+			int leftright = 0;
+
+            int playerButtons = owner.GetPlayerInput(MODINPUT_BUTTONS);
+			if(playerButtons & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )){
+				if (playerButtons & BT_BACK){	//backwards takes precedence
+					forwardback -= 1;
+				}
+				else if(playerButtons & BT_FORWARD){
+					forwardback += 1;
+				}
+
+				//do the same for left and right'
+				if(playerButtons & BT_MOVELEFT){
+					leftright -= 1;
+				}
+				if (playerButtons & BT_MOVERIGHT){
+					leftright += 1;
+				}
+				//it's zero if you are pressing both
+
+
+            }
+
+			//create angle offset using good ol trig
+			Guy.dashAngle = atan2(leftright, forwardback);
+			// console.printf("%d", Guy.dashAngle);
+        }
+
+        
+        return false;   //I don't want this to use itself.
+    }
+
+    //end of DashItem
+}
 
 

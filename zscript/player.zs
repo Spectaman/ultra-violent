@@ -8,7 +8,11 @@ class ultraGuy: DoomPlayer {
 	const PARRY_PUNCH_KNOCKBACK = 1;
 	
 	//dash stuff
-	const DASH_SPEED = 200;	
+	const DASH_SPEED = 50;	//how fast the dash is.
+	// const DASH_LENGTH = 25;	//how many ticks to dash for.
+	// bool isDashing;
+	int dash_ticks;
+	int dashAngle;
 	
 	//wall jump stuff
 	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
@@ -18,6 +22,9 @@ class ultraGuy: DoomPlayer {
 	int jumpAngle;
 	vector2 jumpVector;
 	int currentWallJumpCount;
+
+
+
 
 	Default{
 		// Player.StartItem "Pistol";
@@ -57,23 +64,33 @@ class ultraGuy: DoomPlayer {
 	
 	override void PostBeginPlay(){
 		super.PostBeginPlay();
+		//walljump setup
 		currentWallJumpCount = 0;
+
+		//dash setup
+		self.GiveInventory("DashCharge",300);
 	}
 	
 	override void Tick(){
 		Super.Tick();
 		
+		self.GiveInventory("DashCharge",1);
+
+		//stop trying to do anything until the dash is over.
+		if(isDashing()){
+			return;
+		}
 
 		// //allow air control only when the player is pressing buttons THAT MOVE THE PLAYER
-		// if(  GetPlayerInput(-1,MODINPUT_BUTTONS) & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )  ) {
-		// 	ACS_NamedExecute("AirOn");
-		// }
-		// else{
-		// 	ACS_NamedExecute("AirOff");
-		// }
+		if(  GetPlayerInput(MODINPUT_BUTTONS) & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )  ) {
+			ACS_NamedExecute("AirOn");
+		}
+		else{
+			ACS_NamedExecute("AirOff");
+		}
 
-		doWallJump();	//do a wall jump if the conditions for it arise
-		// console.printf("look ma im being executed!");
+		doWallJump();	//do a wall jump (if the conditions for it arise)
+
 	}
 
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
@@ -103,9 +120,11 @@ class ultraGuy: DoomPlayer {
 
 
 
-	void doDash() {
-		return;
-	}
+	// void doDash() {
+	// 	//GIVE PLAYER THE DASH THINGY
+	// 	Use("DashCharge");
+	// 	return;
+	// }
 
 	bool, vector2 CheckWallJump()
 	{
@@ -167,6 +186,10 @@ class ultraGuy: DoomPlayer {
 
 	}
 
+	bool isDashing(){
+		return CountInv("DashPower")>0;
+	}
+
 	//for projecting a vector3 u onto another vector v
 	vector3 project3(vector3 u, vector3 v){
 		//this comes up more often than you think
@@ -183,7 +206,6 @@ class ultraGuy: DoomPlayer {
 		}
 		return (u dot v)/(v.LengthSquared())*(v);
 	}
-
 
 
 	//end of ultraGuy

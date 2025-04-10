@@ -326,24 +326,24 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 		
 	}
 
-	// override void InitEffect() //
-	// {
-	// 	Super.InitEffect();		
-	// 	//stop the music
-	// 	S_PauseSound(false, false);
+	override void InitEffect() //
+	{
+		Super.InitEffect();		
+		//stop the music
+		S_PauseSound(false, false);
 
-	// 	//freeze the game 
-	// 	level.SetFrozen(true);
+		//freeze the game 
+		level.SetFrozen(true);
 
-	// }
+	}
 
 	override void DoEffect(){ //this runs on every tick but InitEffect wasn't working soooooo
 		Super.DoEffect();
-		//freeze the game 
-		level.SetFrozen(true);
-		//stop the music, but not the sound
-		S_PauseSound(false, true);
-		// ACS_NamedExecute ("SetMusicVolume", 0, 0.0); 
+		// //freeze the game 
+		// level.SetFrozen(true);
+		// //stop the music, but not the sound
+		// S_PauseSound(false, true);
+		// // ACS_NamedExecute ("SetMusicVolume", 0, 0.0); 
 
 		if (owner && owner.health <= 0) {
 			Destroy();
@@ -378,12 +378,8 @@ class DashCharge : Inventory {    //uses these to
             owner.TakeInventory("DashCharge", 100);
 
 			let Guy = UltraGuy(owner);
-			
-			if(! owner.player.onGround){
-				owner.gravity = 0.0;
-			}
 
-            //thrust the player based on their inputs
+            // //thrust the player based on their inputs
 			int forwardback = 0;
 			int leftright = 0;
 
@@ -398,19 +394,18 @@ class DashCharge : Inventory {    //uses these to
 
 				//do the same for left and right'
 				if(playerButtons & BT_MOVELEFT){
-					leftright -= 1;
-				}
-				if (playerButtons & BT_MOVERIGHT){
 					leftright += 1;
 				}
+				if (playerButtons & BT_MOVERIGHT){
+					leftright -= 1;
+				}
 				//it's zero if you are pressing both
-
-
             }
 
 			//create angle offset using good ol trig
-			Guy.dashAngle = atan2(leftright, forwardback);
-			// console.printf("%d", Guy.dashAngle);
+			Guy.dashAngle = Guy.angle + atan2(leftright,forwardback);
+			Guy.GiveInventory("DashPower",1);
+			console.printf("%d", Guy.dashAngle);
         }
 
         
@@ -418,6 +413,96 @@ class DashCharge : Inventory {    //uses these to
     }
 
     //end of DashItem
+}
+
+class DashPower : Powerup {
+
+	Default{
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.NOSCREENBLINK
+		Powerup.Duration 5;//5 ticks
+	}
+
+	override void InitEffect() //
+	{
+		Super.InitEffect();
+		//stop moving in the beginning		
+		let john = UltraGuy(owner);
+		john.A_Stop();
+	}
+
+	override void DoEffect(){ //this runs on every tick but InitEffect wasn't working soooooo
+		Super.DoEffect();
+		let john = UltraGuy(owner);
+
+		//make bro floatier
+
+		if(owner){
+			if(! owner.player.onGround){
+				owner.gravity = 0.0;
+			}
+			if (owner.health <= 0 ) {
+				Destroy();
+			}
+			if(john && john.canWallJump){
+				Destroy();
+			}
+		}
+		
+
+		//send player dashing yeah
+		john.vel.xy = AngleToVector(john.dashAngle, john.DASH_SPEED);
+
+		//check if player if moving away from the dash angle
+
+	}
+
+	override void EndEffect()
+	{
+		Super.EndEffect();
+
+		//undo the Init effects
+		if(owner){
+			owner.gravity = 1.0;
+			let john = UltraGuy(owner);
+			john.A_Stop();
+		}
+
+		// ACS_NamedExecute ("SetMusicVolume", 0, 1.0); 
+	}
+
+
+	int findInputAngle(){
+		
+		// //thrust the player based on their inputs
+		int forwardback = 0;
+		int leftright = 0;
+
+		int playerButtons = owner.GetPlayerInput(MODINPUT_BUTTONS);
+		if(playerButtons & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )){
+			if (playerButtons & BT_BACK){	//backwards takes precedence
+				forwardback -= 1;
+			}
+			else if(playerButtons & BT_FORWARD){
+				forwardback += 1;
+			}
+
+			//do the same for left and right'
+			if(playerButtons & BT_MOVELEFT){
+				leftright += 1;
+			}
+			if (playerButtons & BT_MOVERIGHT){
+				leftright -= 1;
+			}
+			//it's zero if you are pressing both
+		}
+
+		//create angle offset using good ol trig
+		return owner.angle + atan2(leftright,forwardback);
+	}
+	
+
+	//end of DashPower
 }
 
 

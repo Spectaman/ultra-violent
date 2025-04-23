@@ -11,7 +11,6 @@ class ultraGuy: DoomPlayer {
 	const DASH_SPEED = 50;	//how fast the dash is.
 	// const DASH_LENGTH = 25;	//how many ticks to dash for.
 	// bool isDashing;
-	int dash_ticks;
 	int dashAngle;
 	
 	//wall jump stuff
@@ -23,13 +22,17 @@ class ultraGuy: DoomPlayer {
 	vector2 jumpVector;
 	int currentWallJumpCount;
 
-
+	//stomp 'n slide stuff
+	const STOMP_SPEED = 20;
+	const SLIDE_SPEED = 10;	//todo: figure out better numbers for this
+	bool isStomping;
+	uint stompTicks;
 
 
 	Default{
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
-		Player.JumpZ 12; //higher jump than 8
+		Player.JumpZ 12; //higher jump than 8!!!
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){
@@ -66,9 +69,11 @@ class ultraGuy: DoomPlayer {
 		super.PostBeginPlay();
 		//walljump setup
 		currentWallJumpCount = 0;
-
 		//dash setup
 		self.GiveInventory("DashCharge",300);
+		//stomp/slide setup
+		isStomping = false;
+		stompTicks = 0;
 	}
 	
 	override void Tick(){
@@ -207,6 +212,13 @@ class ultraGuy: DoomPlayer {
 		return (u dot v)/(v.LengthSquared())*(v);
 	}
 
+
+	virtual void CheckCrouch(bool totallyfrozen) {
+		Super.CheckCrouch();
+
+		//stomp and slide checking stuff.
+
+	}
 
 	//end of ultraGuy
 }

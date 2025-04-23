@@ -330,7 +330,7 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 	{
 		Super.InitEffect();		
 		//stop the music
-		S_PauseSound(false, false);
+		S_PauseSound(false, true);
 
 		//freeze the game 
 		level.SetFrozen(true);
@@ -342,7 +342,7 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 		// //freeze the game 
 		// level.SetFrozen(true);
 		// //stop the music, but not the sound
-		// S_PauseSound(false, true);
+		S_PauseSound(false, true);
 		// // ACS_NamedExecute ("SetMusicVolume", 0, 0.0); 
 
 		if (owner && owner.health <= 0) {
@@ -438,7 +438,7 @@ class DashPower : Powerup {
 		//make bro floatier
 
 		if(owner){
-			if(! owner.player.onGround){
+			if(!owner.player.onGround){
 				owner.gravity = 0.0;
 			}
 			if (owner.health <= 0 ) {
@@ -472,37 +472,13 @@ class DashPower : Powerup {
 	}
 
 
-	int findInputAngle(){
-		
-		// //thrust the player based on their inputs
-		int forwardback = 0;
-		int leftright = 0;
-
-		int playerButtons = owner.GetPlayerInput(MODINPUT_BUTTONS);
-		if(playerButtons & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )){
-			if (playerButtons & BT_BACK){	//backwards takes precedence
-				forwardback -= 1;
-			}
-			else if(playerButtons & BT_FORWARD){
-				forwardback += 1;
-			}
-
-			//do the same for left and right'
-			if(playerButtons & BT_MOVELEFT){
-				leftright += 1;
-			}
-			if (playerButtons & BT_MOVERIGHT){
-				leftright -= 1;
-			}
-			//it's zero if you are pressing both
-		}
-
-		//create angle offset using good ol trig
-		return owner.angle + atan2(leftright,forwardback);
-	}
-	
-
 	//end of DashPower
 }
 
+class StompInv : Inventory { //increments the player's stomp ticks until ground is hit.
 
+}
+
+class SlamPower : Powerup {	//does the ground slam. if player jumps during this, they will jump higher.
+
+}

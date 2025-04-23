@@ -3,8 +3,9 @@ Write a Description
 
 ## Current Mechanics In Progress
 * Punch/Parry
+* Wall Jump
+* Dash
 
 ## Planned Mechanics
-* Dash
-* Wall Jump
 * Stomp/Slide
+* weapons (namely, the coin)

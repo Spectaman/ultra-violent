@@ -213,8 +213,8 @@ class ultraGuy: DoomPlayer {
 	}
 
 
-	virtual void CheckCrouch(bool totallyfrozen) {
-		Super.CheckCrouch();
+	override void CheckCrouch(bool totallyfrozen) {
+		Super.CheckCrouch(totallyfrozen);
 
 		//stomp and slide checking stuff.
 

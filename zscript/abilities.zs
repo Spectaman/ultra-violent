@@ -125,7 +125,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 			} 
 			TNT1 AAAAA 1; //this is your parrywindow. It is 5 ticks, or 1/7 of a second
 		Pain:
-			TNT1 A 1 NoDelay {
+			TNT1 A 1 {
 				let Guy = UltraGuy(self.target);
 				if(Guy){
 					Guy.canParryMelee = false;

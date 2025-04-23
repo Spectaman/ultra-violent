@@ -476,9 +476,41 @@ class DashPower : Powerup {
 }
 
 class StompInv : Inventory { //increments the player's stomp ticks until ground is hit.
+	Default{
+		Inventory.MaxAmount 1; //i only need one to do the incrementing
+		//important flag stuff that i shamelessly stole from myself a few lines above
+		+INVENTORY.UNTOSSABLE;
+		+INVENTORY.NOSCREENFLASH;
+	}
+	override bool Use(bool pickup){
+		//keep looping until player hits ground or dies
 
+		return true;
+	}
 }
 
 class SlamPower : Powerup {	//does the ground slam. if player jumps during this, they will jump higher.
+	Default{
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.NOSCREENBLINK
+		Powerup.Duration 3;//3 ticks
+	}
+	override void InitEffect() //
+	{
+		Super.InitEffect();
+		
+		//create AOE that sends enemies upwards
+	}
+	override void DoEffect(){
+		Super.DoEffect();
+
+		//check for jumping input
+	}
+	override void EndEffect(){
+		Super.EndEffect();
+
+		//if there was a jump input then send player up based on stompTicks
+
+	}
 
 }

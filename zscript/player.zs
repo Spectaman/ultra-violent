@@ -223,12 +223,19 @@ class ultraGuy: DoomPlayer {
 		if(cmd.buttons & BT_CROUCH){
 			if(!player.onGround){
 				//stomping time
+				self.GiveInventory("StompInv",1);
 			}
 			else{
+				//slamming time
+				if(CountInv("StompInv")>0){
+					
+				}
 				//sliding time
+				else{
+					
+				}
 			}
 		}
-		
 	}
 
 	//end of ultraGuy

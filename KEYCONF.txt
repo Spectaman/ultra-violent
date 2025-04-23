@@ -1,7 +1,6 @@
 
 addkeysection "Ultra Controls" CrossOver
-defaultbind F "use ParryController"
 addmenukey "Punch/Parry" "use ParryController"
-
+addmenukey "Dash" "use DashCharge"
 
 

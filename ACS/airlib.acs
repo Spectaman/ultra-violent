@@ -1,0 +1,10 @@
+#library "airlib" //Name of the library
+#include "zcommon.acs"
+
+script "AirOn" (void) { //turn on air control
+	SetAirControl(0.87);
+}
+
+script "AirOff" (void) { //turn off the air control
+	SetAirControl(0.00);
+}

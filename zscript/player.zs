@@ -16,7 +16,7 @@ class ultraGuy: DoomPlayer {
 	//wall jump stuff
 	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
 	const WALL_SEARCH_DIST = 15;
-	const WJUMP_FORCE = 30;
+	const WJUMP_FORCE = 24;
 	bool canWallJump;
 	int jumpAngle;
 	vector2 jumpVector;
@@ -179,7 +179,7 @@ class ultraGuy: DoomPlayer {
 		if(canWallJump && justJumped && !self.player.onGround && currentWallJumpCount < 3){
 			//console.printf("john walljump");
 			//fire player in that vector
-			self.vel = WJUMP_FORCE * (jumpVector.x, jumpVector.y, 0.6);
+			self.vel = WJUMP_FORCE * (jumpVector.x, jumpVector.y, 0.75);
 			//increment walljump counter
 			currentWallJumpCount += 1;
 			
@@ -217,7 +217,18 @@ class ultraGuy: DoomPlayer {
 		Super.CheckCrouch(totallyfrozen);
 
 		//stomp and slide checking stuff.
+		let player = self.player;
+		UserCmd cmd = player.cmd;
 
+		if(cmd.buttons & BT_CROUCH){
+			if(!player.onGround){
+				//stomping time
+			}
+			else{
+				//sliding time
+			}
+		}
+		
 	}
 
 	//end of ultraGuy

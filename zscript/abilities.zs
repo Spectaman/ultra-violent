@@ -465,7 +465,7 @@ class DashPower : Powerup {
 		if(owner){
 			owner.gravity = 1.0;
 			let john = UltraGuy(owner);
-			john.A_Stop();
+			john.vel /= 100;
 		}
 
 		// ACS_NamedExecute ("SetMusicVolume", 0, 1.0); 

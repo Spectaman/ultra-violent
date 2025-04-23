@@ -6,5 +6,5 @@ script "AirOn" (void) { //turn on air control
 }
 
 script "AirOff" (void) { //turn off the air control
-	SetAirControl(0.00);
+	SetAirControl(0.10);
 }

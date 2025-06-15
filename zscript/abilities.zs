@@ -522,6 +522,7 @@ class StompPower : Powerup {	// you are in the air!
 
 		//undo the Init effects
 		if(owner){
+			let john = UltraGuy(owner);
 			john.isStomping = false;
 		}
 

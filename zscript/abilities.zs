@@ -139,6 +139,9 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	}
 
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
+
+		//todo: cant parry dead projectiles.
+
 		//player's parry attack should phase through it. 
 		//no need to put it back to true
 		//you are going to die anyways

@@ -16,7 +16,7 @@ class ultraGuy: DoomPlayer {
 	//wall jump stuff
 	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
 	const WALL_SEARCH_DIST = 15;
-	const WJUMP_FORCE = 24;
+	const WJUMP_FORCE = 23;
 	bool canWallJump;
 	int jumpAngle;
 	vector2 jumpVector;

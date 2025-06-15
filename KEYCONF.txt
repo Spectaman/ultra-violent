@@ -2,5 +2,6 @@
 addkeysection "Ultra Controls" CrossOver
 addmenukey "Punch/Parry" "use ParryController"
 addmenukey "Dash" "use DashCharge"
+addmenukey "Stomp/Slide" "give StompInv"
 
 

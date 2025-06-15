@@ -32,7 +32,7 @@ class ultraGuy: DoomPlayer {
 	Default{
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
-		Player.JumpZ 12; //higher jump than 8!!!
+		Player.JumpZ 11; //higher jump than 8!!!
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){
@@ -88,13 +88,16 @@ class ultraGuy: DoomPlayer {
 
 		// //allow air control only when the player is pressing buttons THAT MOVE THE PLAYER
 		if(  GetPlayerInput(MODINPUT_BUTTONS) & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )  ) {
-			ACS_NamedExecute("AirOn");
+			if(!isStomping){
+				ACS_NamedExecute("AirOn");
+			}
 		}
 		else{
 			ACS_NamedExecute("AirOff");
 		}
 
 		doWallJump();	//do a wall jump (if the conditions for it arise)
+		doStomp();
 
 	}
 
@@ -121,15 +124,6 @@ class ultraGuy: DoomPlayer {
 			return super.DamageMobj(inflictor, source, damage, mod, flags, angle);
 		}
 	}
-
-
-
-
-	// void doDash() {
-	// 	//GIVE PLAYER THE DASH THINGY
-	// 	Use("DashCharge");
-	// 	return;
-	// }
 
 	bool, vector2 CheckWallJump()
 	{
@@ -169,7 +163,6 @@ class ultraGuy: DoomPlayer {
 
 		return false, (0,0);
 	}
-
 
 	void doWallJump(){ //it is assumed you can wall jump here.
 		//pressed the jump button.
@@ -212,31 +205,19 @@ class ultraGuy: DoomPlayer {
 		return (u dot v)/(v.LengthSquared())*(v);
 	}
 
-
-	override void CheckCrouch(bool totallyfrozen) {
-		Super.CheckCrouch(totallyfrozen);
-
-		//stomp and slide checking stuff.
-		let player = self.player;
-		UserCmd cmd = player.cmd;
-
-		if(cmd.buttons & BT_CROUCH){
-			if(!player.onGround){
-				//stomping time
-				self.GiveInventory("StompInv",1);
+	void doStomp(){
+		bool justCrouched = GetPlayerInput(MODINPUT_BUTTONS)&BT_CROUCH && !(GetPlayerInput(MODINPUT_OLDBUTTONS)&BT_CROUCH);
+		
+		if (justCrouched) {
+			if(self.player.onGround) {
+				currentWallJumpCount = 0;
 			}
-			else{
-				//slamming time
-				if(CountInv("StompInv")>0){
-					
-				}
-				//sliding time
-				else{
-					
-				}
+			else {
+
 			}
 		}
-	}
 
+	}
+	
 	//end of ultraGuy
 }

@@ -57,8 +57,6 @@ class ParryController : CustomInventory {
 			// 	A_JumpIf(greg > 0, "WaitForParryVisual");
 			// 	// console.printf("%d",greg);
 			// }
-		ParryFail:
-			PUNG C 3;
 		ArmRetract:	
 			PUNG D 3 {
 				// if(invoker.oldBob != 0){
@@ -123,7 +121,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 					Guy.canParryMelee = true;
 				}
 			} 
-			TNT1 AAAAA 1; //this is your parrywindow. It is 5 ticks, or 1/7 of a second
+			TNT1 AAAA 1; //this is your parrywindow. It is 4 ticks, or less than 1/7 of a second
 		Pain:
 			TNT1 A 1 {
 				let Guy = UltraGuy(self.target);
@@ -158,19 +156,10 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 			self.target.player.health = min(self.target.player.health + 25, 100);
 		}
 
-
-		// "Good. I'm giving you a bonus."
-		// if(self.target.player.health < 100){//no overheal thats a little too busted tbh
-		// 	self.target.player.health += 20;
-		// 	if(self.target.player.health > 100){
-		// 		self.target.player.health = 100;
-		// 	}
-		// }
-
 		//todo: parry back the inflictor
 		// let controller = ParryController(tracer);
 
-		if( inflictor.bMISSILE && inflictor!=source ){ //projectile attack
+		if( inflictor.bMISSILE ){ //projectile attack
 			// console.printf("this is a projectile");//tells me that i hit a projectile
 
 			//fire back!
@@ -191,7 +180,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 						Inflictor = PProj.PrProjectile;
 				}
 				else {
-					PProj.PrProjectile = Inflictor;
+					PProj.PrProjectile = inflictor;
 				}
 
 				double sped = inflictor.speed+30;
@@ -202,15 +191,18 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 				inflictor.Tracer = source; 		//homing missiles go back to their original shooter
 
 				
-				//again, pretty much 1-to-1 with elSabas54's ParryKick thingy that I linked in the class declaration
+				//again, pretty much 1-to-1 with elSabas54's ParryKick 
 				PProj.Target = Target; PProj.Tracer = source; PProj.Master = self; 
-				PProj.A_SetSize(Inflictor.Radius,Inflictor.Height);//same hitbox
+				PProj.A_SetSize(inflictor.Radius,inflictor.Height);//same hitbox
 				PProj.Angle = Target.angle; PProj.Pitch = Target.Pitch; 
 				PProj.vel = ( sped*Cos(self.target.angle)*cos(self.target.pitch) , sped*sin(self.target.angle)*cos(self.target.pitch) , -sped*sin(self.target.pitch) );
 				PProj.bMISSILE = true;
 				PProj.bSEEKERMISSILE = inflictor.bSEEKERMISSILE;
 				//im adding this extra thing
 				PProj.DeathSound = PProj.PrProjectile.DeathSound;
+
+				inflictor.SetStateLabel("Spawn"); //the projectile is dying! bring my boy back
+
 			}
 
 		}
@@ -266,7 +258,7 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 				PrProjectile.Angle = Angle;
 				PrProjectile.Pitch = Pitch;
 				if(bSEEKERMISSILE) {A_SeekerMissile(0,9,SMF_LOOK|SMF_PRECISE|SMF_CURSPEED,256);}
-
+				PrProjectile.SetStateLabel("Spawn");
 			}
 			else {Destroy();}
 		}
@@ -317,7 +309,7 @@ Class ParryProjectile : Actor //the projectile actor that drags the parried proj
 }
 
 
-class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freezes the game for   i m p a c t
+class PFlash : Powerup { //flash the screen during a parry. Also freezes the game for   i m p a c t
 	Default{
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
@@ -364,6 +356,8 @@ class PFlash : PowerInvulnerable { //flash the screen during a parry. Also freez
 
 	//end of PFlash
 }
+
+
 
 class DashCharge : Inventory {    //uses these to
     Default{
@@ -412,7 +406,7 @@ class DashCharge : Inventory {    //uses these to
         return false;   //I don't want this to use itself.
     }
 
-    //end of DashItem
+    //end of DashCharge
 }
 
 class DashPower : Powerup {
@@ -420,7 +414,7 @@ class DashPower : Powerup {
 	Default{
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
-		Powerup.Duration 5;//5 ticks
+		Powerup.Duration 4;//5 ticks
 	}
 
 	override void InitEffect() //
@@ -468,7 +462,6 @@ class DashPower : Powerup {
 			john.vel /= 100;
 		}
 
-		// ACS_NamedExecute ("SetMusicVolume", 0, 1.0); 
 	}
 
 
@@ -482,11 +475,33 @@ class StompInv : Inventory { //increments the player's stomp ticks until ground 
 		+INVENTORY.UNTOSSABLE;
 		+INVENTORY.NOSCREENFLASH;
 	}
-	override bool Use(bool pickup){
-		//keep looping until player hits ground or dies
 
-		return true;
+	override void DoEffect(){
+		Super.DoEffect();
+
+		if(owner){
+			if(!owner.player.onGround){
+				Destroy();
+			}
+			else{	//count stomp ticks
+				//keep looping until player hits ground or dies
+				let john = UltraGuy(owner);
+				john.stompTicks += 1;
+				john.vel.xy = (0,0);
+				john.vel.z = john.STOMP_SPEED;
+			}
+		}
+		
 	}
+	// overide void DetachFromOwner()
+	// {
+	//   if (owner) {
+	// 	owner.GiveInventory("SlamPower",1);
+	//   }
+	// }
+
+
+	//end of StompInv
 }
 
 class SlamPower : Powerup {	//does the ground slam. if player jumps during this, they will jump higher.

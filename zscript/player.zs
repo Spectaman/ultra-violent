@@ -1,7 +1,4 @@
-
 class ultraGuy: DoomPlayer {
-	
-	
 	//parrying stuff
 	const PARRY_DIST = 10;
 	bool canParryMelee;
@@ -23,7 +20,7 @@ class ultraGuy: DoomPlayer {
 	int currentWallJumpCount;
 
 	//stomp 'n slide stuff
-	const STOMP_SPEED = 20;
+	const STOMP_SPEED = -25;
 	const SLIDE_SPEED = 10;	//todo: figure out better numbers for this
 	bool isStomping;
 	uint stompTicks;
@@ -32,7 +29,7 @@ class ultraGuy: DoomPlayer {
 	Default{
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
-		Player.JumpZ 11; //higher jump than 8!!!
+		Player.JumpZ 11; //higher jump than 8!
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){
@@ -42,7 +39,7 @@ class ultraGuy: DoomPlayer {
 		//this is player camera z. Trust me bro
 		double pz = player.viewz - pos.z;
 		
-		// direction vector based on: https://forum.zdoom.org/viewtopic.php?t=62666
+		// direction vector from: https://forum.zdoom.org/viewtopic.php?t=62666
 		Vector3 direction;
 		direction.xy = Actor.AngleToVector(self.Angle);
 		direction.z = sin(-self.Pitch);
@@ -97,7 +94,7 @@ class ultraGuy: DoomPlayer {
 		}
 
 		doWallJump();	//do a wall jump (if the conditions for it arise)
-		doStomp();
+		doStompSlide();		//do a stomp/slide if you can and want to.
 
 	}
 
@@ -205,19 +202,26 @@ class ultraGuy: DoomPlayer {
 		return (u dot v)/(v.LengthSquared())*(v);
 	}
 
-	void doStomp(){
-		bool justCrouched = GetPlayerInput(MODINPUT_BUTTONS)&BT_CROUCH && !(GetPlayerInput(MODINPUT_OLDBUTTONS)&BT_CROUCH);
+	void doStompSlide() {
+		bool wasntCrouchingBefore = !(GetPlayerInput(MODINPUT_OLDBUTTONS)&BT_CROUCH);
+		bool isCrouching = GetPlayerInput(MODINPUT_BUTTONS)&BT_CROUCH;
+		bool justCrouched = isCrouching && wasntCrouchingBefore;
 		
-		if (justCrouched) {
-			if(self.player.onGround) {
-				currentWallJumpCount = 0;
-			}
-			else {
 
+		if(self.player.onGround) {
+			//start sliding bucko
+			if(isCrouching) {
+				self.GiveInventory('SlidePower', 1);
 			}
 		}
+		else {
+			if (justCrouched && !isStomping) {
+				//start stomping bucko
+				self.GiveInventory('StompPower', 1);
+			}
+		}	
 
 	}
-	
+
 	//end of ultraGuy
 }

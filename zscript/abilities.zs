@@ -468,47 +468,102 @@ class DashPower : Powerup {
 	//end of DashPower
 }
 
-class StompInv : Inventory { //increments the player's stomp ticks until ground is hit.
+class StompCharge: Inventory { //more stompinvs = more stomp jump height
 	Default{
-		Inventory.MaxAmount 1; //i only need one to do the incrementing
+		Inventory.MaxAmount 300; 
 		//important flag stuff that i shamelessly stole from myself a few lines above
 		+INVENTORY.UNTOSSABLE;
 		+INVENTORY.NOSCREENFLASH;
 	}
 
-	override void DoEffect(){
-		Super.DoEffect();
+	
 
+
+	//end of StompInv
+}
+
+class StompPower : Powerup {	// you are in the air!
+	Default{
+		Inventory.MaxAmount 1; 
+		//important flag stuff that i shamelessly stole from myself a few lines above
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.NOSCREENBLINK
+		Powerup.Duration  0x7FFFFFFF; //two years LOLOLOLOL
+	}
+
+	override void InitEffect() {
+    	super.InitEffect();
 		if(owner){
-			if(!owner.player.onGround){
+			let john = UltraGuy(owner);
+			john.vel.xy = (0,0);
+			john.vel.z = john.STOMP_SPEED;
+
+			john.isStomping = true;
+		}
+	}
+
+	override void DoEffect() {
+		Super.DoEffect();
+		if(owner){
+			if(owner.player.onGround){
 				Destroy();
 			}
 			else{	//count stomp ticks
 				//keep looping until player hits ground or dies
 				let john = UltraGuy(owner);
-				john.stompTicks += 1;
-				john.vel.xy = (0,0);
-				john.vel.z = john.STOMP_SPEED;
+				john.GiveInventory('StompCharge', 1);
 			}
 		}
-		
 	}
-	// overide void DetachFromOwner()
-	// {
-	//   if (owner) {
-	// 	owner.GiveInventory("SlamPower",1);
-	//   }
+	
+	override void EndEffect()
+	{
+		Super.EndEffect();
+
+		//undo the Init effects
+		if(owner){
+			john.isStomping = false;
+		}
+
+	}
+
+}
+
+class SlidePower : Powerup {
+	vector2 oldForwardMove;
+	vector2 oldSideMove;
+	vector2 slidingFM;
+	vector2 slidingSM;
+
+	Default{
+		Inventory.MaxAmount 1; 
+		//important flag stuff that i shamelessly stole from myself a few lines above
+		+INVENTORY.AUTOACTIVATE
+		+INVENTORY.NOSCREENBLINK
+		Powerup.Duration  0x7FFFFFFF; //two years LOL
+	}
+
+	// override void AttachToOwner(Actor other) {
+    // 	super.AttachToOwner(other);
+	// 	if(owner){
+	// 		self.slidingFM = (0.3, 0.3);
+	// 		self..slidingFM = (0, 0);
+
+	// 		let john = UltraGuy(owner);
+	// 		self.oldForwardMove = john.player.ForwardMove;
+	// 		self.oldSideMove = john.player.SideMove;
+			
+	// 		john.player.SideMove = self.slidingSM;
+	// 		john.player.ForwardMove = self.slidingFM;
+	// 	}
 	// }
-
-
-	//end of StompInv
 }
 
 class SlamPower : Powerup {	//does the ground slam. if player jumps during this, they will jump higher.
 	Default{
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
-		Powerup.Duration 3;//3 ticks
+		Powerup.Duration 4;
 	}
 	override void InitEffect() //
 	{

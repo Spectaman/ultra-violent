@@ -21,11 +21,11 @@ class ParryController : CustomInventory {
 	
 	States{
 		Use: 
-			TNT1 A 0 
+			TNT1 A 1
 			{
 				let psp = player.FindPSprite(PARRYLAYER);
 				
-					//are we doing a punch already?
+				//are we doing a punch already?
 				if (!psp) { 
 					A_Overlay(PARRYLAYER, "DoParry");
 				}
@@ -115,7 +115,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	
 	States {
 		Spawn: 
-			TNT1 A 1 NoDelay {
+			TNT1 A 0 NoDelay {
 				let Guy = UltraGuy(self.target);
 				if(Guy){
 					Guy.canParryMelee = true;
@@ -139,8 +139,10 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	}
 
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
-
 		//todo: cant parry dead projectiles.
+		if (InStateSequence(inflictor.curState, inflictor.ResolveState("XDeath")) ||  InStateSequence(inflictor.curState, inflictor.ResolveState("Death"))){
+			return 0;
+		}
 
 		//player's parry attack should phase through it. 
 		//no need to put it back to true
@@ -151,7 +153,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		// viewbob toggle is in the Controller ParrySuccess State
 		
 		//audio cue
-		S_StartSound("dspunch",CHAN_BODY);
+		S_StartSound("dspistol",CHAN_BODY);
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
 		//give player health for parrying
@@ -162,7 +164,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		//todo: parry back the inflictor
 		// let controller = ParryController(tracer);
 
-		if( inflictor.bMISSILE ){ //projectile attack
+		if( inflictor.bMISSILE && inflictor!=source){ //projectile attack
 			// console.printf("this is a projectile");//tells me that i hit a projectile
 
 			//fire back!
@@ -317,8 +319,7 @@ class PFlash : Powerup { //flash the screen during a parry. Also freezes the gam
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
 		Powerup.Color "FF FF FF" ; //Whitescreen screen effect
-		Powerup.Duration 12;//12 ticks
-		
+		Powerup.Duration 11;
 	}
 
 	override void InitEffect() //
@@ -329,6 +330,11 @@ class PFlash : Powerup { //flash the screen during a parry. Also freezes the gam
 
 		//freeze the game 
 		level.SetFrozen(true);
+
+		//grant iframes
+		if(owner){
+			owner.GiveInventory('PIFrame',1);
+		}
 
 	}
 
@@ -354,12 +360,18 @@ class PFlash : Powerup { //flash the screen during a parry. Also freezes the gam
 
 		S_ResumeSound(false);
 		// ACS_NamedExecute ("SetMusicVolume", 0, 1.0); 
+		let john = UltraGuy(owner);
 	}
 
 
 	//end of PFlash
 }
-
+class PIFrame : PowerInvulnerable{	//iframes for the parry. needs to be independant so it lasts a little bit longer
+	Default{
+		Powerup.Duration 9;
+		Powerup.Mode 'None';
+	}
+}
 
 
 class DashCharge : Inventory {    //uses these to

@@ -13,14 +13,14 @@ class ultraGuy: DoomPlayer {
 	//wall jump stuff
 	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
 	const WALL_SEARCH_DIST = 15;
-	const WJUMP_FORCE = 23;
+	const WJUMP_FORCE = 20;
 	bool canWallJump;
 	int jumpAngle;
 	vector2 jumpVector;
 	int currentWallJumpCount;
 
 	//stomp 'n slide stuff
-	const STOMP_SPEED = -25;
+	const STOMP_SPEED = -35;	//negative vertical velocity
 	const SLIDE_SPEED = 10;	//todo: figure out better numbers for this
 	bool isStomping;
 	uint stompTicks;
@@ -30,6 +30,7 @@ class ultraGuy: DoomPlayer {
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
 		Player.JumpZ 11; //higher jump than 8!
+		SelfDamageFactor 0.5;
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){

@@ -123,7 +123,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 			} 
 			TNT1 AAAA 1; //this is your parrywindow. It is 4 ticks, or less than 1/7 of a second
 		Pain:
-			TNT1 A 1 {
+			TNT1 A 0 {
 				let Guy = UltraGuy(self.target);
 				if(Guy){
 					Guy.canParryMelee = false;
@@ -153,7 +153,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		// viewbob toggle is in the Controller ParrySuccess State
 		
 		//audio cue
-		S_StartSound("dspistol",CHAN_BODY);
+		S_StartSound("dsskepch",CHAN_BODY);
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
 		//give player health for parrying
@@ -326,7 +326,7 @@ class PFlash : Powerup { //flash the screen during a parry. Also freezes the gam
 	{
 		Super.InitEffect();		
 		//stop the music
-		S_PauseSound(false, true);
+		S_PauseSound(false, false);
 
 		//freeze the game 
 		level.SetFrozen(true);

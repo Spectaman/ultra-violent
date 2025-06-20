@@ -1,6 +1,6 @@
 class ultraGuy: DoomPlayer {
 	//parrying stuff
-	const PARRY_DIST = 10;
+	const PARRY_DIST = 12;
 	bool canParryMelee;
 	const PARRY_PUNCH_KNOCKBACK = 1;
 	
@@ -13,7 +13,7 @@ class ultraGuy: DoomPlayer {
 	//wall jump stuff
 	const MAX_WALLJUMP_COUNT = 3; //how many walljumps can you do before touching the ground
 	const WALL_SEARCH_DIST = 15;
-	const WJUMP_FORCE = 20;
+	const WJUMP_FORCE = 18;
 	bool canWallJump;
 	int jumpAngle;
 	vector2 jumpVector;

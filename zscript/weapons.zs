@@ -29,6 +29,7 @@ class DelayedRocket : Rocket replaces Rocket {
 class FasterLauncher : RocketLauncher {
 	States {
         Fire:   //immediate fire, in exchange for a longer endlag
+            MISG A 2 A_GunFlash;
             MISG B 16 A_FireMissile;
             MISG B 0 A_ReFire;
             Goto Ready;

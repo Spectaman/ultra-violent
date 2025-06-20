@@ -21,7 +21,7 @@ class ParryController : CustomInventory {
 	
 	States{
 		Use: 
-			TNT1 A 1
+			TNT1 A 0
 			{
 				let psp = player.FindPSprite(PARRYLAYER);
 				
@@ -42,7 +42,7 @@ class ParryController : CustomInventory {
 				// }
 			}
 
-			PUNG B 1 {
+			PUNG C 1 {
 				let Guy = UltraGuy(player.mo);
 				if(Guy){
 					invoker.myParryHitbox = ParryHitbox( Guy.doParry(invoker) );   //for some unholy reason, "self" does not refer to the instance of the class.
@@ -50,13 +50,10 @@ class ParryController : CustomInventory {
 					// console.printf("%s",invoker.myParryHitbox.getclassname());
 				}
 			}
-			PUNG B 2;
-			// {
-			// 	int greg = self.player.mo.CountInv('PFlash');//i kinda forgot how to make a good name but its used to much i cant change it :P
-			// 	//go here if nothing happened
-			// 	A_JumpIf(greg > 0, "WaitForParryVisual");
-			// 	// console.printf("%d",greg);
-			// }
+			PUNG C 1;
+			PUNG D 4;
+		LamePunch:
+			PUNG D 3 A_Punch;
 		ArmRetract:	
 			PUNG D 3 {
 				// if(invoker.oldBob != 0){
@@ -75,7 +72,7 @@ class ParryController : CustomInventory {
 				// invoker.oldBob = bobCVAR.GetFloat();
 				// bobCVAR.SetFloat(0.0);
 			}
-			PUNG D 13 Offset(42, 35); // wow great parry dude
+			PUNG D 13 Offset(44, 32); // wow great parry dude
 			PUNG D 1  Offset(2, 32); // ok put the offset back now 
 			goto ArmRetract;
 	//end of States
@@ -94,7 +91,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	PSprite controllerPSprite; //I can change states this way
 
 	Default{
-		Radius 17;
+		Radius 18;
 		Height 32;
 		Projectilekickback 800;// i want to use this for knockback but idk if i will
 		species "player"; //please do not parry yourself
@@ -104,13 +101,13 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		+SHOOTABLE		//Enemies can hit it.
 		+NOBLOOD		//if it could bleed that would be weird
 		+NOGRAVITY		//if it could fall  that would be weird
-		+noclip
+		+NOCLIP
 		+NOTIMEFREEZE 
 		+NEVERTARGET		//target is the player, so i can't let it switch
 		+NOTARGETSWITCH
 
 		+NOTIMEFREEZE 
-		+thruspecies
+		+THRUSPECIES
 	}
 	
 	States {
@@ -121,7 +118,12 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 					Guy.canParryMelee = true;
 				}
 			} 
-			TNT1 AAAA 1; //this is your parrywindow. It is 4 ticks, or less than 1/7 of a second
+			//uncomment only one of these lines. 
+			//BBRN is for me to debug stuff
+			//TNT1 is for normal people who dont want to see romero up in their face
+			BBRN AAAA 1;
+			// TNT1 AAAA 1; 
+			//this is your parrywindow. It is 4 ticks, or less than 1/7 of a second
 		Pain:
 			TNT1 A 0 {
 				let Guy = UltraGuy(self.target);
@@ -134,8 +136,13 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	
 	override void Tick(){
 		Super.Tick();
-
-		self.vel = target.vel; //match player vel
+		let john = UltraGuy(target);
+		// direction vector from: https://forum.zdoom.org/viewtopic.php?t=62666
+		Vector3 direction;
+		direction.xy = Actor.AngleToVector(john.Angle);
+		direction.z = sin(-john.Pitch);
+		SetOrigin(john.pos + direction*john.PARRY_DIST, true);
+		self.vel = john.vel; //match player vel
 	}
 
 	override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle) {
@@ -158,7 +165,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		self.target.GiveInventory("PFlash",1);
 		//give player health for parrying
 		if(self.target.player.health < 100){
-			self.target.player.health = min(self.target.player.health + 25, 100);
+			self.target.player.health = min(self.target.player.health + 20, 100);
 		}
 
 		//todo: parry back the inflictor

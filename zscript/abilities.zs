@@ -91,7 +91,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 	PSprite controllerPSprite; //I can change states this way
 
 	Default{
-		Radius 18;
+		Radius 20;
 		Height 32;
 		Projectilekickback 800;// i want to use this for knockback but idk if i will
 		species "player"; //please do not parry yourself
@@ -118,9 +118,12 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 					Guy.canParryMelee = true;
 				}
 			} 
-			//uncomment only one of these lines. 
+			//uncomment only one of these lines.
+
 			//BBRN is for me to debug stuff
 			//TNT1 is for normal people who dont want to see romero up in their face
+
+
 			BBRN AAAA 1;
 			// TNT1 AAAA 1; 
 			//this is your parrywindow. It is 4 ticks, or less than 1/7 of a second
@@ -160,7 +163,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		// viewbob toggle is in the Controller ParrySuccess State
 		
 		//audio cue
-		S_StartSound("dsskepch",CHAN_BODY);
+		S_StartSound("pary",CHAN_BODY, volume: 0.85);
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
 		//give player health for parrying

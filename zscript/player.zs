@@ -1,6 +1,6 @@
 class ultraGuy: DoomPlayer {
 	//parrying stuff
-	const PARRY_DIST = 12;
+	const PARRY_DIST = 10;
 	bool canParryMelee;
 	const PARRY_PUNCH_KNOCKBACK = 1;
 	

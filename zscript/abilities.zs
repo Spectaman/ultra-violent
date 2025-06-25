@@ -164,8 +164,13 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		
 		//audio cue
 		S_StartSound("pary",CHAN_BODY, volume: 0.85);
+		
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
+		// target.A_QuakeEx(9,9,5,20, 0.1, 0.1,flags:(QF_SHAKEONLY), damage: 0);
+		target.A_QuakeEX(7, 7, 7, 20, 0, 128, "", QF_SCALEDOWN|QF_FULLINTENSITY);
+		// target.A_QuakeEX(8, 0, 0, 28, 0, 24, "", QF_SCALEDOWN|QF_FULLINTENSITY|QF_WAVE|QF_RELATIVE, -1);
+
 		//give player health for parrying
 		if(self.target.player.health < 100){
 			self.target.player.health = min(self.target.player.health + 20, 100);

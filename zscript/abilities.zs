@@ -124,8 +124,8 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 			//TNT1 is for normal people who dont want to see romero up in their face
 
 
-			BBRN AAAA 1;
-			// TNT1 AAAA 1; 
+			// BBRN AAAA 1;
+			TNT1 AAAA 1; 
 			//this is your parrywindow. It is 4 ticks, or less than 1/7 of a second
 		Pain:
 			TNT1 A 0 {
@@ -334,7 +334,7 @@ class PFlash : Powerup { //flash the screen during a parry. Also freezes the gam
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
 		Powerup.Color "FF FF FF" ; //Whitescreen screen effect
-		Powerup.Duration 11;
+		Powerup.Duration 12;
 	}
 
 	override void InitEffect() //

@@ -224,5 +224,8 @@ class ultraGuy: DoomPlayer {
 
 	}
 
+	bool amITryingToJump(){
+		return (GetPlayerInput(MODINPUT_BUTTONS) & BT_JUMP);
+	}
 	//end of ultraGuy
 }

@@ -168,7 +168,7 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 		//visual cue
 		self.target.GiveInventory("PFlash",1);
 		// target.A_QuakeEx(9,9,5,20, 0.1, 0.1,flags:(QF_SHAKEONLY), damage: 0);
-		target.A_QuakeEX(7, 7, 7, 20, 0, 128, "", QF_SCALEDOWN|QF_FULLINTENSITY);
+		target.A_QuakeEX(4, 4, 6, 15, 0, 128, "", QF_SHAKEONLY);
 		// target.A_QuakeEX(8, 0, 0, 28, 0, 24, "", QF_SCALEDOWN|QF_FULLINTENSITY|QF_WAVE|QF_RELATIVE, -1);
 
 		//give player health for parrying
@@ -334,7 +334,7 @@ class PFlash : Powerup { //flash the screen during a parry. Also freezes the gam
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
 		Powerup.Color "FF FF FF" ; //Whitescreen screen effect
-		Powerup.Duration 12;
+		Powerup.Duration 11;
 	}
 
 	override void InitEffect() //
@@ -429,7 +429,7 @@ class DashCharge : Inventory {    //uses these to
 			//create angle offset using good ol trig
 			Guy.dashAngle = Guy.angle + atan2(leftright,forwardback);
 			Guy.GiveInventory("DashPower",1);
-			console.printf("%d", Guy.dashAngle);
+			// console.printf("%d", Guy.dashAngle);
         }
 
         
@@ -546,14 +546,14 @@ class StompPower : Powerup {	// you are in the air!
 		}
 	}
 	
-	override void EndEffect()
-	{
+	override void EndEffect() {
 		Super.EndEffect();
 
 		//undo the Init effects
 		if(owner){
 			let john = UltraGuy(owner);
 			john.isStomping = false;
+			owner.GiveInventory("SlamPower", 1);
 		}
 
 	}
@@ -591,27 +591,74 @@ class SlidePower : Powerup {
 }
 
 class SlamPower : Powerup {	//does the ground slam. if player jumps during this, they will jump higher.
-	Default{
+	
+	bool bigJump;	//true if i wanna do a biiig jump
+	
+	Default {
 		+INVENTORY.AUTOACTIVATE
 		+INVENTORY.NOSCREENBLINK
-		Powerup.Duration 4;
+		Powerup.Duration 2;
 	}
-	override void InitEffect() //
-	{
+	override void InitEffect(){
 		Super.InitEffect();
-		
-		//create AOE that sends enemies upwards
+		bigJump = false;
+
+		if(owner){
+			//stomp the HELL out of the dude below you
+			FLineTraceData fl;
+			bool isthereadudebelowme = owner.LineTrace(0,32,90,data:fl);
+			if(isthereadudebelowme && fl.HitType==TRACE_HitActor && fl.HitActor.bISMONSTER){
+				fl.HitActor.DamageMobj(owner, owner, 200, 'Normal');	
+			}
+
+			//create AOE that sends enemies upwards
+			BlockThingsIterator thingsInRad = BlockThingsIterator.create(owner, 128);
+			Actor dude;
+			while(thingsInRad.Next()){
+				dude = thingsInRad.thing;
+				if(dude && dude.bISMONSTER && !dude.bNOGRAVITY){
+					dude.vel += (0,0,17);	//todo: scale height with stompcharge
+					dude.DamageMobj(owner, owner, 1, 'Normal');	
+				}
+			}
+
+		}
+
 	}
 	override void DoEffect(){
 		Super.DoEffect();
 
 		//check for jumping input
+		if(owner && UltraGuy(owner).amITryingToJump()){
+			self.bigJump = true;
+			Destroy();
+		}
 	}
 	override void EndEffect(){
 		Super.EndEffect();
 
 		//if there was a jump input then send player up based on stompTicks
+		if(owner){
+			int count = owner.CountInv("StompCharge");
 
+			if(self.bigJump){
+				int jump = max(15, count);
+				// console.printf("BIG JUMP YEAH");
+				// console.printf("%d",owner.CountInv("StompCharge"));
+				owner.vel = (0,0, jump);
+				console.printf("%d", count);
+				owner.TakeInventory('StompCharge',count);
+				// console.printf("%d",owner.CountInv("StompCharge"));
+			
+				//since where doing a big jump, give more charge so the next one is higher!
+				owner.GiveInventory('StompCharge', 2*log10(jump)+15);
+			}
+			else{
+				owner.TakeInventory('StompCharge',count);
+				owner.A_QuakeEX(0.01, 0.01, 9, 14, 3000, 3000, "dsdshtgn", QF_AFFECTACTORS|QF_SHAKEONLY);
+			}
+		}
+		
 	}
 
 }

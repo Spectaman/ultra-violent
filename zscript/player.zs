@@ -1,4 +1,4 @@
-class ultraGuy: DoomPlayer {
+class UltraGuy: DoomPlayer {
 	//parrying stuff
 	const PARRY_DIST = 10;
 	bool canParryMelee;
@@ -22,15 +22,17 @@ class ultraGuy: DoomPlayer {
 	//stomp 'n slide stuff
 	const STOMP_SPEED = -35;	//negative vertical velocity
 	const SLIDE_SPEED = 10;	//todo: figure out better numbers for this
+	const SLIDE_DECEL_RATE = 1;
 	bool isStomping;
-	uint stompTicks;
+	int slidingAngle;
+	// uint stompTicks;
 
 
 	Default{
 		// Player.StartItem "Pistol";
 		Player.StartItem "ParryController"; //parry/punch functionality
-		Player.JumpZ 11; //higher jump than 8!
-		SelfDamageFactor 0.5;
+		Player.JumpZ 11; //higher jump than 8
+		SelfDamageFactor 0.5;	// i like doing dangerous things
 	}
 	
 	Actor doParry(Actor ControllerThePlatypus){
@@ -71,7 +73,7 @@ class ultraGuy: DoomPlayer {
 		self.GiveInventory("DashCharge",300);
 		//stomp/slide setup
 		isStomping = false;
-		stompTicks = 0;
+		// stompTicks = 0;
 	}
 	
 	override void Tick(){
@@ -204,15 +206,19 @@ class ultraGuy: DoomPlayer {
 	}
 
 	void doStompSlide() {
-		bool wasntCrouchingBefore = !(GetPlayerInput(MODINPUT_OLDBUTTONS)&BT_CROUCH);
-		bool isCrouching = GetPlayerInput(MODINPUT_BUTTONS)&BT_CROUCH;
+		slidingAngle = updateSlidingAngle(GetPlayerInput(MODINPUT_BUTTONS));
+
+		bool wasntCrouchingBefore = !(GetPlayerInput(MODINPUT_OLDBUTTONS) & BT_CROUCH);
+		bool isCrouching = GetPlayerInput(MODINPUT_BUTTONS) & BT_CROUCH;
 		bool justCrouched = isCrouching && wasntCrouchingBefore;
 		
 
 		if(self.player.onGround) {
 			//start sliding bucko
-			if(isCrouching) {
+			if(justCrouched) {
+				//visual thing and audio i think?
 				self.GiveInventory('SlidePower', 1);
+
 			}
 		}
 		else {
@@ -224,8 +230,41 @@ class ultraGuy: DoomPlayer {
 
 	}
 
+	int updateSlidingAngle(int playerButtons){	
+		// //slide the player based on their inputs
+		int forwardback = 0;
+		int leftright = 0;
+
+		// int playerButtons = owner.GetPlayerInput(MODINPUT_BUTTONS);
+		if(playerButtons & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )){
+			if (playerButtons & BT_BACK){	//backwards takes precedence
+				forwardback -= 1;
+			}
+			else if(playerButtons & BT_FORWARD){
+				forwardback += 1;
+			}
+
+			//do the same for left and right'
+			if(playerButtons & BT_MOVELEFT){
+				leftright += 1;
+			}
+			if (playerButtons & BT_MOVERIGHT){
+				leftright -= 1;
+			}
+			// and it's zero if you are pressing both
+		}
+
+		//create angle offset using good ol trig
+		return self.angle + atan2(leftright,forwardback);
+	}
+
+	// helper function thats mostly just for non-player actors
 	bool amITryingToJump(){
 		return (GetPlayerInput(MODINPUT_BUTTONS) & BT_JUMP);
+	}
+
+	int justGiveMeTheButtonsDammit(){
+		return GetPlayerInput(MODINPUT_BUTTONS);
 	}
 	//end of ultraGuy
 }

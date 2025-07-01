@@ -173,7 +173,8 @@ class ParryHitbox : Actor { // heavily based on elSebas54's work: https://forum.
 
 		//give player health for parrying
 		if(self.target.player.health < 100){
-			self.target.player.health = min(self.target.player.health + 20, 100);
+			// self.target.player.health = min(self.target.player.health + 20, 100);
+			target.GiveBody(20);
 		}
 
 		//todo: parry back the inflictor
@@ -439,7 +440,8 @@ class DashCharge : Inventory {    //uses these to
     //end of DashCharge
 }
 
-class DashPower : Powerup {
+class DashPower : Powerup {	
+	bool goZooming;
 
 	Default{
 		+INVENTORY.AUTOACTIVATE
@@ -447,15 +449,15 @@ class DashPower : Powerup {
 		Powerup.Duration 4;//5 ticks
 	}
 
-	override void InitEffect() //
-	{
+	override void InitEffect(){
 		Super.InitEffect();
+		goZooming = false;
 		//stop moving in the beginning		
 		let john = UltraGuy(owner);
 		john.A_Stop();
 	}
 
-	override void DoEffect(){ //this runs on every tick but InitEffect wasn't working soooooo
+	override void DoEffect(){ //i know this runs on every tick but InitEffect wasn't working soooooo
 		Super.DoEffect();
 		let john = UltraGuy(owner);
 
@@ -471,8 +473,11 @@ class DashPower : Powerup {
 			if(john && john.canWallJump){
 				Destroy();
 			}
+			if((john.amITryingToJump() && john.player.onGround)){
+				self.goZooming = true;
+				Destroy();
+			}
 		}
-		
 
 		//send player dashing yeah
 		john.vel.xy = AngleToVector(john.dashAngle, john.DASH_SPEED);
@@ -489,7 +494,10 @@ class DashPower : Powerup {
 		if(owner){
 			owner.gravity = 1.0;
 			let john = UltraGuy(owner);
-			john.vel /= 100;
+			if(!self.goZooming){
+				john.vel /= 100;	
+			}
+			
 		}
 
 	}
@@ -561,10 +569,7 @@ class StompPower : Powerup {	// you are in the air!
 }
 
 class SlidePower : Powerup {
-	vector2 oldForwardMove;
-	vector2 oldSideMove;
-	vector2 slidingFM;
-	vector2 slidingSM;
+	// int slidingAngle;
 
 	Default{
 		Inventory.MaxAmount 1; 
@@ -574,20 +579,85 @@ class SlidePower : Powerup {
 		Powerup.Duration  0x7FFFFFFF; //two years LOL
 	}
 
-	// override void AttachToOwner(Actor other) {
-    // 	super.AttachToOwner(other);
-	// 	if(owner){
-	// 		self.slidingFM = (0.3, 0.3);
-	// 		self..slidingFM = (0, 0);
+	int getSlidingAngle(int playerButtons){	
+		// //slide the player based on their inputs
+		int forwardback = 0;
+		int leftright = 0;
 
-	// 		let john = UltraGuy(owner);
-	// 		self.oldForwardMove = john.player.ForwardMove;
-	// 		self.oldSideMove = john.player.SideMove;
-			
-	// 		john.player.SideMove = self.slidingSM;
-	// 		john.player.ForwardMove = self.slidingFM;
-	// 	}
-	// }
+		// int playerButtons = owner.GetPlayerInput(MODINPUT_BUTTONS);
+		if(playerButtons & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )){
+			if (playerButtons & BT_BACK){	//backwards takes precedence
+				forwardback -= 1;
+			}
+			else if(playerButtons & BT_FORWARD){
+				forwardback += 1;
+			}
+
+			//do the same for left and right'
+			if(playerButtons & BT_MOVELEFT){
+				leftright += 1;
+			}
+			if (playerButtons & BT_MOVERIGHT){
+				leftright -= 1;
+			}
+			// and it's zero if you are pressing both
+		}
+
+		//create angle offset using good ol trig
+		return angle + atan2(leftright,forwardback);
+	}
+
+	override void InitEffect(){
+		super.InitEffect();
+		if(owner){
+			UltraGuy john = UltraGuy(owner);
+			// int playerButtons = john.justGiveMeTheButtonsDammit();
+			// john.slidingAngle = getSlidingAngle(playerButtons);
+
+			owner.vel.xy = AngleToVector(john.slidingAngle, UltraGuy(owner).SLIDE_SPEED);
+		}
+
+	}
+   
+	override void DoEffect(){
+		super.DoEffect();
+		if(owner){
+			UltraGuy john = UltraGuy(owner);
+
+			//stop sliding if crouch isnt held
+			int playerButtons = john.justGiveMeTheButtonsDammit();
+
+			if(!(playerButtons & BT_CROUCH)){
+				Destroy();
+			}
+			if(playerButtons & BT_JUMP){
+				Destroy();
+			}
+
+			//allow some kind of steering?
+			int newAngle = self.getSlidingAngle(playerButtons);
+			if(abs(newAngle - john.slidingAngle) < 180){
+				john.slidingAngle = newAngle;
+			}
+		
+			//go sliding boy
+			john.vel.xy = AngleToVector(john.slidingAngle, john.SLIDE_SPEED);
+		}
+
+	}
+
+	override void EndEffect() {
+		Super.EndEffect();
+
+		// //undo the Init effects
+		// if(owner){
+		// 	let john = UltraGuy(owner);
+		// 	john.vel /= 10;
+		// }
+
+	}
+
+	//end of SlidePower
 }
 
 class SlamPower : Powerup {	//does the ground slam. if player jumps during this, they will jump higher.
@@ -646,6 +716,8 @@ class SlamPower : Powerup {	//does the ground slam. if player jumps during this,
 				// console.printf("BIG JUMP YEAH");
 				// console.printf("%d",owner.CountInv("StompCharge"));
 				owner.vel = (0,0, jump);
+				//audio
+				S_StartSound("stomp", CHAN_5, pitch: 1);
 				console.printf("%d", count);
 				owner.TakeInventory('StompCharge',count);
 				// console.printf("%d",owner.CountInv("StompCharge"));

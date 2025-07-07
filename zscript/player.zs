@@ -24,6 +24,8 @@ class UltraGuy: DoomPlayer {
 	const SLIDE_SPEED = 10;	//todo: figure out better numbers for this
 	const SLIDE_DECEL_RATE = 1;
 	bool isStomping;
+	int slidingStart;	//initial angle
+
 	int slidingAngle;
 	// uint stompTicks;
 
@@ -74,6 +76,7 @@ class UltraGuy: DoomPlayer {
 		//stomp/slide setup
 		isStomping = false;
 		// stompTicks = 0;
+		slidingStart = angle;
 	}
 	
 	override void Tick(){
@@ -206,7 +209,7 @@ class UltraGuy: DoomPlayer {
 	}
 
 	void doStompSlide() {
-		slidingAngle = updateSlidingAngle(GetPlayerInput(MODINPUT_BUTTONS));
+		slidingAngle = updateSlidingAngle();
 
 		bool wasntCrouchingBefore = !(GetPlayerInput(MODINPUT_OLDBUTTONS) & BT_CROUCH);
 		bool isCrouching = GetPlayerInput(MODINPUT_BUTTONS) & BT_CROUCH;
@@ -228,13 +231,16 @@ class UltraGuy: DoomPlayer {
 			}
 		}	
 
+		if(!isCrouching){
+			slidingStart = angle;	//reset starting angle
+		}
 	}
 
-	int updateSlidingAngle(int playerButtons){	
+	int updateSlidingAngle(){
 		// //slide the player based on their inputs
 		int forwardback = 0;
 		int leftright = 0;
-
+		int playerButtons = GetPlayerInput(MODINPUT_BUTTONS);
 		// int playerButtons = owner.GetPlayerInput(MODINPUT_BUTTONS);
 		if(playerButtons & (BT_FORWARD | BT_BACK | BT_MOVELEFT | BT_MOVERIGHT )){
 			if (playerButtons & BT_BACK){	//backwards takes precedence
@@ -253,9 +259,15 @@ class UltraGuy: DoomPlayer {
 			}
 			// and it's zero if you are pressing both
 		}
+		//angle offset
+		int newAngle = self.angle + atan2(leftright,forwardback);
 
-		//create angle offset using good ol trig
-		return self.angle + atan2(leftright,forwardback);
+		if(isSliding() && abs(newAngle-slidingAngle == 45)){
+			return slidingAngle;	//keep it as is
+		}
+
+		
+		return newAngle;
 	}
 
 	// helper function thats mostly just for non-player actors
@@ -265,6 +277,10 @@ class UltraGuy: DoomPlayer {
 
 	int justGiveMeTheButtonsDammit(){
 		return GetPlayerInput(MODINPUT_BUTTONS);
+	}
+
+	bool isSliding(){
+		return CountInv("SlidePower") > 0;
 	}
 	//end of ultraGuy
 }

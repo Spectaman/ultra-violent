@@ -569,7 +569,6 @@ class StompPower : Powerup {	// you are in the air!
 }
 
 class SlidePower : Powerup {
-	// int slidingAngle;
 
 	Default{
 		Inventory.MaxAmount 1; 
@@ -613,8 +612,10 @@ class SlidePower : Powerup {
 			UltraGuy john = UltraGuy(owner);
 			// int playerButtons = john.justGiveMeTheButtonsDammit();
 			// john.slidingAngle = getSlidingAngle(playerButtons);
-
+			// startingAngle = john.slidingAdngle;
 			owner.vel.xy = AngleToVector(john.slidingAngle, UltraGuy(owner).SLIDE_SPEED);
+			john.ViewBob = 0.0;
+			john.jumpZ = 0;
 		}
 
 	}
@@ -650,10 +651,12 @@ class SlidePower : Powerup {
 		Super.EndEffect();
 
 		// //undo the Init effects
-		// if(owner){
-		// 	let john = UltraGuy(owner);
-		// 	john.vel /= 10;
-		// }
+		if(owner){
+			let john = UltraGuy(owner);
+			// john.vel /= 10;
+			john.ViewBob = 1.0;
+			john.jumpZ = 11;	//remember to change this if you change the regular jump height
+		}
 
 	}
 

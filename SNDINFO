@@ -5,3 +5,16 @@ dsdshtgn = "DSDSHTGN"
 pary = "sounds/pary2.ogg"
 stomp =  "sounds/stomp.mp3"
 dsswtchn = "DSSWTCHN"
+
+open01 = "sounds/OPEN01.wav"
+open04 = "sounds/OPEN04.mp3"
+close01 = "sounds/CLOSE01.wav"
+close04 = "sounds/CLOSE04.mp3"
+
+
+$musicvolume "music/deb_clai.mid" 2.8
+$musicvolume "music/572941__zach_ramirez__ceiling-fan-wind.wav" 2.6
+
+
+$playersound player male *land dsempty
+$playersound player male *grunt dsempty

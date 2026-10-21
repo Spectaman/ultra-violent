@@ -3,9 +3,21 @@ GameInfo {
 	AddEventHandlers = "UltraHandler"
 }
 
-map map01 "Ultra-Violent" {
+map map01 "Test Map" {
 
     aircontrol = 1.0
     music = "D_RUNNIN"
 //     gravity = 250
+}
+
+map map02 "Hurtbreak Wonderland" {
+
+	aircontrol = 1.0
+	music = "music/572941__zach_ramirez__ceiling-fan-wind.wav"
+}
+
+map map03 "Claire de Lune" {
+    sky1  = "SKY1", 0
+    UsePlayerStartZ
+    music = "music/deb_clai.mid"
 }
